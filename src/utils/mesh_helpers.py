@@ -8,7 +8,18 @@ This tool provides a function ```clean_mesh``` and executable code to remove the
 """
 
 
-def to_structured_pv(input_vtk, output_vtk, structured_mesh_min_x, structured_mesh_max_x, structured_mesh_min_y, structured_mesh_max_y, structured_mesh_n_discretization_x, structured_mesh_n_discretization_y, field_name: str = "OP", plot=False):
+def to_structured_pv(
+    input_vtk,
+    output_vtk,
+    structured_mesh_min_x,
+    structured_mesh_max_x,
+    structured_mesh_min_y,
+    structured_mesh_max_y,
+    structured_mesh_n_discretization_x,
+    structured_mesh_n_discretization_y,
+    field_name: str = "OP",
+    plot=False,
+):
     """Use pyvista to sample the unstructured grid data with the given field name to a structured grid and save it to the given output path as vtk"""
     ugrid = pv.UnstructuredGrid(input_vtk)
 
@@ -91,8 +102,9 @@ def clean_mesh(mesh: meshio.Mesh) -> meshio.Mesh:
     )
     return mesh_cleaned
 
+
 def tec_to_vtk(input_tec, output_vtk):
-    """Converts all tecplot files in the app folder to vtk files and remove second order nodes."""    
+    """Converts all tecplot files in the app folder to vtk files and remove second order nodes."""
     try:
         mesh = meshio.read(input_tec)
         mesh_cleaned = clean_mesh(mesh)
@@ -100,6 +112,7 @@ def tec_to_vtk(input_tec, output_vtk):
     except FileNotFoundError as e:
         print("I caught the following error for you: ", str(e))
         print("Skipping the file")
+
 
 def clean_tec_file(file_in: str, file_out: str):
     """Delete only the first empty line appearing. This is needed so that the pandas tecplot file can be read by meshio."""
@@ -109,6 +122,7 @@ def clean_tec_file(file_in: str, file_out: str):
         index_of_empty_line = lines.index("\n")
         lines.pop(index_of_empty_line)
         f.writelines(lines)
+
 
 def scale_pixels_to_coordinates(mesh, points, pixel_coordinates):
     # scale the pixel coordinates to the coordinates of the mesh

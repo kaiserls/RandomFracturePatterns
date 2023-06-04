@@ -56,9 +56,7 @@ def plot_isolines_pyvista_skiimage(mesh_file):
     plt.show()
 
 
-def isolines_image_cv2(
-    mesh_file, iso_value
-):  # , imagesize = (1000,2000)):
+def isolines_image_cv2(mesh_file, iso_value):  # , imagesize = (1000,2000)):
     import cv2 as cv
 
     """Load the strucuted grid with data OP from the vtk file, generate contours with cv2,

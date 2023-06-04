@@ -32,7 +32,7 @@ def crack_width(isolines):
         # )
     isolines = sorted(isolines, key=lambda x: x[0, 0])
     width = isolines[1][:, 1] - isolines[0][:, 1]
-    #assert np.all(width >= 0)
+    # assert np.all(width >= 0)
     return width
 
 
@@ -59,9 +59,7 @@ def crack_length(isolines):
     """Calculates the crack length from a list of two isolines, the bottom and the top of the crack."""
     length = 0
     for isoline in isolines:
-        section_lengths = np.sqrt(
-            np.sum(np.diff(isoline, axis=0) ** 2, axis=1)
-        )
+        section_lengths = np.sqrt(np.sum(np.diff(isoline, axis=0) ** 2, axis=1))
         isoline_length = np.sum(section_lengths)
         length += isoline_length
     return length

@@ -1,12 +1,13 @@
 from src.utils.path_helpers import get_pandas_app_path
 from gstools.random import MasterRNG
 
+
 def create_default_parameters():
     app_path = get_pandas_app_path()
     parameters = {}
 
     parameters["app_path"] = app_path
-    
+
     parameters["mean_mu"] = 8.077e7
     parameters["std_mu"] = 0.0e0
     parameters["lengthscale_mu"] = 5.0e1
@@ -34,13 +35,14 @@ def create_default_parameters():
 
     return parameters
 
+
 def define_scenarios(default_parameters: dict):
     rng = MasterRNG(20170519)
 
     ref_std_lambda = default_parameters["mean_lambda"]
-    stds_lambda = [ref_std_lambda*0.25, ref_std_lambda*0.5, ref_std_lambda]
+    stds_lambda = [ref_std_lambda * 0.25, ref_std_lambda * 0.5, ref_std_lambda]
     lengthscales_lambda = [1.0, 5.0, 15.0, 65.0, 250.0, 1000.0]
-    samples = [0,1,2,3]
+    samples = [0, 1, 2, 3]
 
     scenarios = []
     run = 0

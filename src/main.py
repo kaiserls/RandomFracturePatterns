@@ -16,11 +16,12 @@ import src.simulation.postprocessing as postprocessing
 import src.simulation.analysis as analysis
 import src.simulation.plotting as plotting
 
+
 def main():
     """The main function managing the simulation."""
     cluster = LocalCluster(n_workers=14, threads_per_worker=1)
-    client =  Client(cluster) # Client("129.69.167.191:8786")
-    
+    client = Client(cluster)  # Client("129.69.167.191:8786")
+
     print("The client is: ", client)
     print("The cluster is: ", cluster)
     print("The scheduler is: ", client.scheduler_info())
@@ -33,9 +34,11 @@ def main():
 
     # Create a fake_simulate function. Partial fill in the parameter "fake_run"
     fake_simulate = partial(simulation.simulate, fake_run=True)
-    
+
     scenario_simulations = [delayed(fake_simulate)(scenario) for scenario in scenarios]
-    simulation_results = compute(*scenario_simulations) # Compute all simulations in parallel
+    simulation_results = compute(
+        *scenario_simulations
+    )  # Compute all simulations in parallel
     pd.DataFrame(simulation_results).to_csv("results/simulation_results.csv")
 
     postprocessing_results = postprocessing.postprocess(simulation_results)
@@ -47,5 +50,6 @@ def main():
 
     plotting.plot(analysis_results_table)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()

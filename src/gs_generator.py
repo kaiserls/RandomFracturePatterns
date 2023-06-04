@@ -104,10 +104,12 @@ def generate_field_data(
 
         if save_vtk:
             lambda_srf.vtk_export(
-                str(fields_path / f"lambda_field_run_{run}_sample_{i}"), field_select=f"field{i}"
+                str(fields_path / f"lambda_field_run_{run}_sample_{i}"),
+                field_select=f"field{i}",
             )
             mu_srf.vtk_export(
-                str(fields_path / f"mu_field_run_{run}_sample_{i}"), field_select=f"field{i}"
+                str(fields_path / f"mu_field_run_{run}_sample_{i}"),
+                field_select=f"field{i}",
             )
 
         if save_txt:

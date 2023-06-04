@@ -1,7 +1,6 @@
 from dask.distributed import Client, SSHCluster, LocalCluster
 
 
-
 if __name__ == "__main__":
     # cluster = LocalCluster()
     # cluster = SSHCluster(

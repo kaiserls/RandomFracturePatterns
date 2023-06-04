@@ -15,13 +15,16 @@ from src.utils.isolines import (
     isolines_image_cv2,
 )
 
+
 def analyze(postprocessing_results: list[dict]):
     postprocessing_result_df = pd.DataFrame(postprocessing_results)
     return analyze_from_dataframe(postprocessing_result_df)
 
+
 def analyze_from_csv_file(postprocessing_result_file: str):
     postprocessing_result_df = pd.read_csv(postprocessing_result_file, index_col=0)
     return analyze_from_dataframe(postprocessing_result_df)
+
 
 def analyze_from_dataframe(df: pd.DataFrame):
     # Define the analysis parameters
@@ -32,7 +35,7 @@ def analyze_from_dataframe(df: pd.DataFrame):
     df = df.assign(**analysis_parameters)
 
     # Get the reference run. It is the one with homogeneous material properties.
-    reference_run = df[df['homogeneous'] == True].to_dict(orient="records")
+    reference_run = df[df["homogeneous"] == True].to_dict(orient="records")
     assert len(reference_run) == 1, "There should be only one reference run."
     reference_run = reference_run[0]
 
@@ -45,10 +48,13 @@ def analyze_from_dataframe(df: pd.DataFrame):
     # Analyze all other runs
     for i, row in df.iterrows():
         if row["homogeneous"] == False:
-            analysis_result = analyze_run(row, reference_data=reference_analysis_results)
+            analysis_result = analyze_run(
+                row, reference_data=reference_analysis_results
+            )
             analysis_results.append(analysis_result)
 
     return analysis_results
+
 
 def analyze_run(data: dict, reference_data=None):
     analysis_result = data.copy()
@@ -64,16 +70,26 @@ def analyze_run(data: dict, reference_data=None):
     }
     analysis_result.update(possible_analysis_result)
 
-
-    img = isolines_image_cv2(mesh_file=data["vtk_structured"], iso_value=data["iso_value"])
+    img = isolines_image_cv2(
+        mesh_file=data["vtk_structured"], iso_value=data["iso_value"]
+    )
     fractal_dimension = fractal.fractal_dimension(img[:, :, 1])
     analysis_result["fractal_dimension"] = fractal_dimension
 
-    dA = fractal.pixel_area(min_x=data["structured_mesh_min_x"], max_x=data["structured_mesh_max_x"], n_discretization_x=data["structured_mesh_n_discretization_x"], min_y=data["structured_mesh_min_y"], max_y=data["structured_mesh_max_y"], n_discretization_y=data["structured_mesh_n_discretization_y"])
+    dA = fractal.pixel_area(
+        min_x=data["structured_mesh_min_x"],
+        max_x=data["structured_mesh_max_x"],
+        n_discretization_x=data["structured_mesh_n_discretization_x"],
+        min_y=data["structured_mesh_min_y"],
+        max_y=data["structured_mesh_max_y"],
+        n_discretization_y=data["structured_mesh_n_discretization_y"],
+    )
     volume = fractal.crack_volume(Z=img[:, :, 1], dA=dA)
     analysis_result["volume"] = volume
 
-    isolines = isolines_from_vtk(mesh_file=data["vtk_structured"], iso_value=data["iso_value"])
+    isolines = isolines_from_vtk(
+        mesh_file=data["vtk_structured"], iso_value=data["iso_value"]
+    )
     # Save the isolines as a dict of numpy arrays
     isolines_path = f"results/isolines/isolines_{data['run']}.npz"
     isolines_dict = {f"isoline_{i}": isoline for i, isoline in enumerate(isolines)}
@@ -84,9 +100,18 @@ def analyze_run(data: dict, reference_data=None):
     analysis_result["length"] = length
 
     try:
-        interpolated_isolines = interpolate_isolines(isolines, target_n_points=data["target_n_points"], x_min=data["structured_mesh_min_x"], x_max=data["structured_mesh_max_x"])
-        interpolated_isolines_path = f"results/isolines/interpolated_isolines_{data['run']}.npz"
-        interpolated_isolines_dict = {f"isoline_{i}": isoline for i, isoline in enumerate(interpolated_isolines)}
+        interpolated_isolines = interpolate_isolines(
+            isolines,
+            target_n_points=data["target_n_points"],
+            x_min=data["structured_mesh_min_x"],
+            x_max=data["structured_mesh_max_x"],
+        )
+        interpolated_isolines_path = (
+            f"results/isolines/interpolated_isolines_{data['run']}.npz"
+        )
+        interpolated_isolines_dict = {
+            f"isoline_{i}": isoline for i, isoline in enumerate(interpolated_isolines)
+        }
         np.savez(interpolated_isolines_path, **interpolated_isolines_dict)
         analysis_result["interpolated_isolines"] = interpolated_isolines_path
 
@@ -94,15 +119,27 @@ def analyze_run(data: dict, reference_data=None):
         analysis_result["width"] = width
 
         if reference_data is not None:
-            reference_interpolated_isolines_container = np.load(reference_data["interpolated_isolines"])
-            reference_interpolated_isolines = [reference_interpolated_isolines_container[f"isoline_{i}"] for i in range(len(reference_interpolated_isolines_container.files))]
-            deviation = np.mean(simple.crack_deviation(isolines=interpolated_isolines, reference_isolines=reference_interpolated_isolines))
+            reference_interpolated_isolines_container = np.load(
+                reference_data["interpolated_isolines"]
+            )
+            reference_interpolated_isolines = [
+                reference_interpolated_isolines_container[f"isoline_{i}"]
+                for i in range(len(reference_interpolated_isolines_container.files))
+            ]
+            deviation = np.mean(
+                simple.crack_deviation(
+                    isolines=interpolated_isolines,
+                    reference_isolines=reference_interpolated_isolines,
+                )
+            )
             analysis_result["deviation"] = deviation
 
     except Exception as e:
-        print(f"Error while measuring run {data['run']} with the following data:\n{data}")
+        print(
+            f"Error while measuring run {data['run']} with the following data:\n{data}"
+        )
         print(f"Expect some analysis results to be None.")
         # print(f"Error: {e}")
         # print(''.join(traceback.TracebackException.from_exception(e).format()))
-    
+
     return analysis_result

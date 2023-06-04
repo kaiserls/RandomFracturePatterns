@@ -11,7 +11,6 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     # other
     other_runs = df[df["homogeneous"] == False]
 
-
     plots = ["fractal_dimension", "volume", "length", "width", "deviation"]
     n_row_plots = len(plots)
 
@@ -19,8 +18,6 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     n_std_lambdas = len(std_lambdas)
     std_lambda_colors = plt.cm.rainbow(np.linspace(0, 1, n_std_lambdas))
     n_col_plots = n_std_lambdas if create_subplots else 1
-
-    
 
     fig, axs = plt.subplots(
         n_row_plots, n_col_plots, figsize=(10, 20), tight_layout=True
@@ -44,7 +41,9 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
             )
 
             # Draw a horizontal line at the homogeneous case
-            ax.axhline(reference_run_df[plot].values[0], color="red", label="homogeneous")
+            ax.axhline(
+                reference_run_df[plot].values[0], color="red", label="homogeneous"
+            )
 
             # labels
             # if i == n_plots - 1:
@@ -54,7 +53,7 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
             ax.legend(loc="upper right")
 
             ax.set_ylim([min_val, max_val])
-            ax.set_xlim([1,1000])
+            ax.set_xlim([1, 1000])
             # set log scale for x
             ax.set_xscale("log")
 
