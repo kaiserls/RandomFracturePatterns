@@ -67,10 +67,8 @@ def random_field(parameters):
     field_path = app_path / "fields" / f"field_run_{parameters['run']}_sample_{0}.txt"
     return field_path.as_posix()
 
-def simulate(parameters):
-    results = {}
-
-    app_path = get_pandas_app_path()
+def simulate(parameters, fake_run=False):
+    results = parameters.copy()
     cmd = create_cmd(parameters)
     path_to_cmd = save_cmd(parameters, cmd)
     results['cmd'] = path_to_cmd
@@ -78,14 +76,23 @@ def simulate(parameters):
     if not parameters['homogeneous']:
         field_path = random_field(parameters)
         results['field'] = field_path
+    else:
+        results['field'] = None
 
-    # # Run the simulation programm
-    # command = f"./pandas.bin --ui=plain < {path_to_cmd} >/dev/null 2>&1"
-    # process = subprocess.Popen(command, shell=True, cwd=app_path)
-    # process.communicate()
+    if not fake_run:
+        command = f"./pandas.bin --ui=plain < {path_to_cmd} >/dev/null 2>&1"
+        process = subprocess.Popen(command, shell=True, cwd=parameters["app_path"])
+        process.communicate()
+        return_code = process.returncode
+    else:
+        return_code = 0
+    
+    if return_code == 0:
+        print(f"Simulation {parameters['run']} finished successfully")
+    else:
+        print(f"Simulation {parameters['run']} failed with return code {return_code}. It had the parameters {parameters} and the results {results}")
 
-    # return_code = process.returncode
-    # results['tec'] = f"tec/tecplot_final_run_{parameters['run']}.dat"
-    # assert return_code == 0, f"Simulation {parameters['run']} failed with return code {return_code}. It had the parameters {parameters} and the results {results}"
+    results['tec'] = f"{parameters['app_path']}/tec/tecplot_final_run_{parameters['run']}.dat"
+    results['return_code'] = return_code
 
     return results

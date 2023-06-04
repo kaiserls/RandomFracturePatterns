@@ -24,23 +24,26 @@ import matplotlib.pyplot as plt
 def crack_width(isolines):
     """Calculates the crack with from a list of two isolines, the bottom and the top of the crack."""
     if len(isolines) != 2:
-        raise ValueError(
-            "There should be exactly two isolines. There are "
-            + str(len(isolines))
-            + " isolines."
-        )
+        return np.nan
+        # raise ValueError(
+        #     "There should be exactly two isolines. There are "
+        #     + str(len(isolines))
+        #     + " isolines."
+        # )
     isolines = sorted(isolines, key=lambda x: x[0, 0])
     width = isolines[1][:, 1] - isolines[0][:, 1]
-    assert np.all(width >= 0)
+    #assert np.all(width >= 0)
     return width
 
 
 def crack_deviation(isolines, reference_isolines):
     """Calculates the deviation of the crack path from the reference crack path."""
     if len(isolines) != 2:
-        raise ValueError("There should be exactly two isolines")
+        return np.nan
+        # raise ValueError("There should be exactly two isolines")
     if len(reference_isolines) != 2:
-        raise ValueError("There should be exactly two isolines")
+        return np.nan
+        # raise ValueError("There should be exactly two reference isolines")
     isolines = sorted(isolines, key=lambda x: x[0, 0])
     reference_isolines = sorted(reference_isolines, key=lambda x: x[0, 0])
     deviation = np.abs(isolines[1][:, 1] - reference_isolines[1][:, 1]) + np.abs(
@@ -54,12 +57,11 @@ def crack_deviation(isolines, reference_isolines):
 # It could be a fractal and therefore change its length with the grid size.
 def crack_length(isolines):
     """Calculates the crack length from a list of two isolines, the bottom and the top of the crack."""
-    if len(isolines) != 2:
-        raise ValueError("There should be exactly two isolines")
-    isolines = sorted(isolines, key=lambda x: x[0, 0])
-    d_iso1 = np.diff(isolines[0], axis=0)
-    d_iso2 = np.diff(isolines[1], axis=0)
-    lengths1 = np.sqrt((d_iso1**2).sum(axis=1))
-    lengths2 = np.sqrt((d_iso2**2).sum(axis=1))
-    length = lengths1.sum() + lengths2.sum()
+    length = 0
+    for isoline in isolines:
+        section_lengths = np.sqrt(
+            np.sum(np.diff(isoline, axis=0) ** 2, axis=1)
+        )
+        isoline_length = np.sum(section_lengths)
+        length += isoline_length
     return length

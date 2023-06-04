@@ -12,11 +12,11 @@ from src.utils.mesh_helpers import (
 )
 
 
-def isolines_from_vtk(mesh_file, scaled=True):
+def isolines_from_vtk(mesh_file, iso_value, scaled=True):
     """Return the isolines of the OP data from the vtk file belonging to app"""
     mesh = pv.read(mesh_file)
     data = reshape_data(mesh, mesh["OP"])
-    return isolines(mesh, data, scaled=scaled)
+    return isolines(mesh, data, iso_value=iso_value, scaled=scaled)
 
 
 def interpolate_isolines(isolines, target_n_points, x_min, x_max):

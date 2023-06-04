@@ -4,6 +4,8 @@ from gstools.random import MasterRNG
 def create_default_parameters():
     app_path = get_pandas_app_path()
     parameters = {}
+
+    parameters["app_path"] = app_path
     
     parameters["mean_mu"] = 8.077e7
     parameters["std_mu"] = 0.0e0
@@ -40,7 +42,7 @@ def define_scenarios(default_parameters: dict):
     lengthscales_lambda = [1.0, 5.0, 15.0, 65.0, 250.0, 1000.0]
     samples = [0,1,2,3]
 
-    entries = []
+    scenarios = []
     run = 0
     for std_lambda in stds_lambda:
         for lengthscale_lambda in lengthscales_lambda:
@@ -52,12 +54,12 @@ def define_scenarios(default_parameters: dict):
                 param_entry["sample"] = sample
                 param_entry["seed_mu"] = rng()
                 param_entry["seed_lambda"] = rng()
-                entries.append(param_entry)
+                scenarios.append(param_entry)
                 run += 1
 
     homogeneous_param_entry = default_parameters.copy()
     homogeneous_param_entry["homogeneous"] = True
     homogeneous_param_entry["run"] = run
-    entries.append(homogeneous_param_entry)
+    scenarios.append(homogeneous_param_entry)
 
-    return entries
+    return scenarios

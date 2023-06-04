@@ -1,3 +1,4 @@
+from functools import partial
 import time
 import pandas as pd
 import psutil
@@ -28,21 +29,21 @@ def main():
 
     default_parameters = parameters.create_default_parameters()
     scenarios = parameters.define_scenarios(default_parameters)
-    scenarios_table = pd.DataFrame(scenarios, columns=scenarios[0].keys())
-    scenarios_table.to_csv("scenarios.csv")
+    pd.DataFrame(scenarios).to_csv("results/scenarios.csv")
 
-    scenario_simulations = [delayed(simulation.simulate)(scenario) for scenario in scenarios]
+    # Create a fake_simulate function. Partial fill in the parameter "fake_run"
+    fake_simulate = partial(simulation.simulate, fake_run=True)
+    
+    scenario_simulations = [delayed(fake_simulate)(scenario) for scenario in scenarios]
     simulation_results = compute(*scenario_simulations) # Compute all simulations in parallel
-    simulation_results_table = pd.DataFrame(simulation_results, columns=simulation_results[0].keys())
-    simulation_results_table.to_csv("simulation_results.csv")
+    pd.DataFrame(simulation_results).to_csv("results/simulation_results.csv")
 
-    postprocessing_results = postprocessing.postprocess(scenarios, simulation_results)
-    postprocessing_results_table = pd.DataFrame(postprocessing_results, columns=postprocessing_results[0].keys())
-    postprocessing_results_table.to_csv("postprocessing_results.csv")
+    postprocessing_results = postprocessing.postprocess(simulation_results)
+    pd.DataFrame(postprocessing_results).to_csv("results/postprocessing_results.csv")
 
-    analysis_results = analysis.analyze(scenarios, simulation_results, postprocessing_results)
-    analysis_results_table = pd.DataFrame(analysis_results, columns=analysis_results[0].keys())
-    analysis_results_table.to_csv("analysis_results.csv")
+    analysis_results = analysis.analyze(postprocessing_results)
+    analysis_results_table = pd.DataFrame(analysis_results)
+    analysis_results_table.to_csv("results/analysis_results.csv")
 
     plotting.plot(analysis_results_table)
 
