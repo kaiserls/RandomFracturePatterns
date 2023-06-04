@@ -1,8 +1,9 @@
-from src.path_helper import get_pandas_app_path
+from src.utils.path_helpers import get_pandas_app_path
 from gstools.random import MasterRNG
 
-def add_default_parameters(parameters: dict):
+def create_default_parameters():
     app_path = get_pandas_app_path()
+    parameters = {}
     
     parameters["mean_mu"] = 8.077e7
     parameters["std_mu"] = 0.0e0
@@ -29,7 +30,9 @@ def add_default_parameters(parameters: dict):
     parameters["seed_mu"] = 0
     parameters["seed_lambda"] = 0
 
-def define_simulations(default_parameters: dict):
+    return parameters
+
+def define_scenarios(default_parameters: dict):
     rng = MasterRNG(20170519)
 
     ref_std_lambda = default_parameters["mean_lambda"]

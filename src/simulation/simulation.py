@@ -2,7 +2,7 @@ import numpy as np
 import jinja2
 import subprocess
 
-from src.path_helper import get_pandas_app_path
+from src.utils.path_helpers import get_pandas_app_path
 
 import src.gs_generator as gs_generator
 
@@ -73,11 +73,11 @@ def simulate(parameters):
     app_path = get_pandas_app_path()
     cmd = create_cmd(parameters)
     path_to_cmd = save_cmd(parameters, cmd)
-    results['cmd_path'] = path_to_cmd
+    results['cmd'] = path_to_cmd
 
     if not parameters['homogeneous']:
         field_path = random_field(parameters)
-        results['field_path'] = field_path
+        results['field'] = field_path
 
     # # Run the simulation programm
     # command = f"./pandas.bin --ui=plain < {path_to_cmd} >/dev/null 2>&1"
@@ -85,7 +85,7 @@ def simulate(parameters):
     # process.communicate()
 
     # return_code = process.returncode
-    # results['tec_file_path'] = f"tec/tecplot_final_run_{parameters['run']}.dat"
+    # results['tec'] = f"tec/tecplot_final_run_{parameters['run']}.dat"
     # assert return_code == 0, f"Simulation {parameters['run']} failed with return code {return_code}. It had the parameters {parameters} and the results {results}"
 
     return results
