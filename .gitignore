@@ -1,0 +1,5 @@
+PANDAS_coop
+venv
+__pycache__
+*.csv
+*hosts*
