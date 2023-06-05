@@ -16,6 +16,19 @@ import src.simulation.postprocessing as postprocessing
 import src.simulation.analysis as analysis
 import src.simulation.plotting as plotting
 
+########################## SSHCluster #########################################
+# cluster = LocalCluster()
+# cluster = SSHCluster(
+#     hosts=["129.69.167.191", "129.69.167.193"],
+#     connect_options={"known_hosts": None, "username": "lars_k"},
+#     # scheduler_options={"port": 0, "dashboard_address": ":8797"},
+#     remote_python="/usr/bin/python3"
+# )
+
+# There seems to be a difference between the code above and the bash command.
+# The bash command is working!
+# dask-ssh 129.69.167.191 129.69.167.193 --ssh-username lars_k
+
 
 def main():
     """The main function managing the simulation."""
