@@ -16,6 +16,7 @@ def isolines_from_vtk(mesh_file, iso_value, scaled=True):
     """Return the isolines of the OP data from the vtk file belonging to app"""
     mesh = pv.read(mesh_file)
     data = reshape_data(mesh, mesh["OP"])
+    assert 0 <= iso_value <= 1, "iso_value must be between 0 and 1, because OP vtk data is in range [0, 1]"
     return isolines(mesh, data, iso_value=iso_value, scaled=scaled)
 
 
@@ -29,6 +30,7 @@ def interpolate_isolines(isolines, target_n_points, x_min, x_max):
 
 def isolines(mesh, data, iso_value, scaled=True):
     # extract the isolines from the data
+    assert 0 <= iso_value <= 1, "iso_value must be between 0 and 1 for this function"
     contours = skimage.measure.find_contours(data, iso_value)
     if scaled:
         contours = [scale_pixels_to_coordinates(mesh, mesh.points, c) for c in contours]
@@ -56,7 +58,7 @@ def plot_isolines_pyvista_skiimage(mesh_file):
     plt.show()
 
 
-def isolines_image_cv2(mesh_file, iso_value):  # , imagesize = (1000,2000)):
+def isolines_image_cv2(mesh_file, iso_value, contour_thickness):
     import cv2 as cv
 
     """Load the strucuted grid with data OP from the vtk file, generate contours with cv2,
@@ -72,9 +74,9 @@ def isolines_image_cv2(mesh_file, iso_value):  # , imagesize = (1000,2000)):
     imagesize = data.shape
     img = np.zeros((*imagesize, 3), dtype=np.uint8)
 
-    ret, thresh = cv.threshold(data, 255 * iso_value, 255, 0)
+    ret, thresh = cv.threshold(src=data, thresh=255 * iso_value, maxval=255, type=0)
     contours, hierarchy = cv.findContours(thresh, cv.RETR_TREE, cv.CHAIN_APPROX_SIMPLE)
-    cv.drawContours(img, contours, -1, (0, 255, 0), 3)
+    cv.drawContours(image=img, contours=contours, contourIdx=-1, color=(0, 255, 0), thickness=contour_thickness)
     return img
 
 

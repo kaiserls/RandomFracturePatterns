@@ -51,6 +51,8 @@ def crack_deviation(isolines, reference_isolines):
     )
     return deviation
 
+def max_deviation_from_middle(isolines):
+    return max(np.max(np.abs(isolines[i][:, 1])) for i in range(len(isolines)))
 
 # Global measures:
 # TODO: The crack length is not independent of the grid size and will probably never be.

@@ -1,6 +1,7 @@
 import os
 import traceback
 
+from PIL import Image
 import pandas as pd
 import numpy as np
 
@@ -26,12 +27,23 @@ def analyze_from_csv_file(postprocessing_result_file: str):
     return analyze_from_dataframe(postprocessing_result_df)
 
 
-def analyze_from_dataframe(df: pd.DataFrame):
+def analyze_from_dataframe(df: pd.DataFrame, **kwargs) -> list[dict]:
+    """Analyze the simulation results. They should come from the postprocessing.
+
+    Args:
+        df (pd.DataFrame): The simulation results including derieved quantities from the postprocessing.
+
+    Returns:
+        list[dict]: The analysis results as a list of dictionaries.
+    """
     # Define the analysis parameters
     analysis_parameters = {
         "iso_value": 0.9,
         "target_n_points": 201,
+        "contour_thickness": 1,
     }
+    analysis_parameters.update(kwargs)
+
     df = df.assign(**analysis_parameters)
 
     # Get the reference run. It is the one with homogeneous material properties.
@@ -56,7 +68,7 @@ def analyze_from_dataframe(df: pd.DataFrame):
     return analysis_results
 
 
-def analyze_run(data: dict, reference_data=None):
+def analyze_run(data: dict, reference_data=None, verbose=False):
     analysis_result = data.copy()
     # Define the possible analysis results. So even if the analysis fails, we dont get a key error.
     possible_analysis_result = {
@@ -71,9 +83,16 @@ def analyze_run(data: dict, reference_data=None):
     analysis_result.update(possible_analysis_result)
 
     img = isolines_image_cv2(
-        mesh_file=data["vtk_structured"], iso_value=data["iso_value"]
+        mesh_file=data["vtk_structured"], iso_value=data["iso_value"], contour_thickness=data["contour_thickness"]
     )
-    fractal_dimension = fractal.fractal_dimension(img[:, :, 1])
+    img_path = f"results/images/cv2_isolines_{data['run']}.png"
+    np_img_path = f"results/images/cv2_isolines_as_np_array_{data['run']}.npy"
+    analysis_result["cv2_isolines"] = img_path
+    analysis_result["cv2_isolines_as_np_array"] = np_img_path
+    Image.fromarray(img).save(img_path)
+    np.save(np_img_path, img)
+
+    fractal_dimension = fractal.fractal_dimension(Z=img[:, :, 1], threshold=0.9)
     analysis_result["fractal_dimension"] = fractal_dimension
 
     dA = fractal.pixel_area(
@@ -98,6 +117,9 @@ def analyze_run(data: dict, reference_data=None):
 
     length = simple.crack_length(isolines)
     analysis_result["length"] = length
+
+    max_deviation_from_middle = simple.max_deviation_from_middle(isolines)
+    analysis_result["max_deviation_from_middle"] = max_deviation_from_middle
 
     try:
         interpolated_isolines = interpolate_isolines(
@@ -135,11 +157,14 @@ def analyze_run(data: dict, reference_data=None):
             analysis_result["deviation"] = deviation
 
     except Exception as e:
-        print(
-            f"Error while measuring run {data['run']} with the following data:\n{data}"
-        )
-        print(f"Expect some analysis results to be None.")
-        # print(f"Error: {e}")
-        # print(''.join(traceback.TracebackException.from_exception(e).format()))
+        if verbose:
+            print(
+                f"Error while measuring run {data['run']} with the following data:\n{data}"
+            )
+            print(f"Expect some analysis results to be None.")
+            # print(f"Error: {e}")
+            # print(''.join(traceback.TracebackException.from_exception(e).format()))
+        else:
+            pass
 
     return analysis_result

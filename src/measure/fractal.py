@@ -21,9 +21,23 @@ def crack_volume(Z, dA, threshold=0.9):
     return volume
 
 
-def fractal_dimension(Z, threshold=0.9, plot=False):
+def fractal_dimension(Z:np.ndarray, threshold, plot=False):
+    # Get the type of the numpy array Z
+    Z_type = Z.dtype
+    # If the type is float, also the threshold should be float and between 0 and 1
+    if Z_type == np.float64:
+        assert 0 <= threshold <= 1
+    elif Z_type == np.uint8:
+        assert 0 <= threshold <= 255
+    else:
+        raise ValueError(
+            f"Z has dtype {Z_type}, but it should be either np.float64 or np.uint8."
+        )
+
     # Only for 2d image
     assert len(Z.shape) == 2
+
+    # assert that the image is in [0, ]
 
     # From https://github.com/rougier/numpy-100 (#87)
     def boxcount(Z, k):

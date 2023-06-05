@@ -1,0 +1,14 @@
+numpy
+pandas
+psutil
+gstools
+matplotlib
+meshio
+pyvista
+scikit-image
+scipy
+opencv-python
+dask
+distributed
+bokeh
+Pillow

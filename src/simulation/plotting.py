@@ -10,8 +10,10 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     assert len(reference_run_df) == 1, "There should be only one reference run."
     # other
     other_runs = df[df["homogeneous"] == False]
+    # drop outliers where the length is lower than 1000. This indicates crashes, because the simulation domain is 1000 long.
+    other_runs = other_runs[other_runs["length"] > 999]
 
-    plots = ["fractal_dimension", "volume", "length", "width", "deviation"]
+    plots = ["fractal_dimension", "volume", "length", "width", "deviation", "max_deviation_from_middle"]
     n_row_plots = len(plots)
 
     std_lambdas = other_runs["std_lambda"].unique()
@@ -25,7 +27,7 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     if n_col_plots == 1:
         axs = np.array([axs]).T
     for i, plot in enumerate(plots):
-        max_val, min_val = np.max(df[plot]), np.min(df[plot])
+        max_val, min_val = np.max(other_runs[plot]), np.min(other_runs[plot])
         for j, std_lambda in enumerate(std_lambdas):
             if n_col_plots == 1:
                 ax = axs[i, 0]
