@@ -2,7 +2,7 @@ from pathlib import Path
 
 REL_PATH_TO_APPS = "PANDAS_coop/src/app/apps/"
 APP_TEMPLATE = "2d_fracking_saturated/"
-REPOSITORY_NAME = "RandomFracturesRework"
+REPOSITORY_NAME = "RandomFracturePatterns"
 
 
 def get_pandas_app_path():
