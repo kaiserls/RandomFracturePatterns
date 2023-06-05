@@ -37,9 +37,9 @@ def fractal_dimension(Z, threshold=0.9, plot=False):
         return len(np.where((S > 0) & (S < k * k))[0])
 
     # Transform Z into a binary array
-    Z = Z < threshold
+    Z = (Z < threshold)
     if plot:
-        plt.imshow(Z)
+        plt.imshow(Z, interpolation="none", cmap="gray")
         plt.colorbar()
         plt.show()
 
