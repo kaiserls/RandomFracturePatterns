@@ -5,11 +5,11 @@ STRUCTURED_MESH = {
     # Take the full length of the domain where the crack is located
     "structured_mesh_min_x": 0,
     "structured_mesh_max_x": 1000,
-    "structured_mesh_n_discretization_x": 1000//2,
+    "structured_mesh_n_discretization_x": 1000,
     # Take only the height of the domain where the crack is located (i.e. the crack is located in the middle of the domain)
     "structured_mesh_min_y": -250,
     "structured_mesh_max_y": 250,
-    "structured_mesh_n_discretization_y": 500//2,
+    "structured_mesh_n_discretization_y": 500,
 }
 
 # Define the paths to the tecplot and vtk files.

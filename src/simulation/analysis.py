@@ -6,11 +6,11 @@ import pandas as pd
 import numpy as np
 
 import src.measure.fractal as fractal
-import src.measure.simple as simple
+import src.deprecated.simple_deprecated as simple_deprecated
 
 from src.measure.fractal import fractal_dimension, crack_volume, pixel_area
-from src.measure.simple import crack_width, crack_deviation, crack_length
-from src.utils.isolines import (
+from src.deprecated.simple_deprecated import crack_width, crack_deviation, crack_length
+from src.measure.isolines import (
     isolines_from_vtk,
     interpolate_isolines,
     isolines_image_cv2,
@@ -115,10 +115,10 @@ def analyze_run(data: dict, reference_data=None, verbose=False):
     np.savez(isolines_path, **isolines_dict)
     analysis_result["isolines"] = isolines_path
 
-    length = simple.crack_length(isolines)
+    length = simple_deprecated.crack_length(isolines)
     analysis_result["length"] = length
 
-    max_deviation_from_middle = simple.max_deviation_from_middle(isolines)
+    max_deviation_from_middle = simple_deprecated.max_deviation_from_middle(isolines)
     analysis_result["max_deviation_from_middle"] = max_deviation_from_middle
 
     try:
@@ -137,7 +137,7 @@ def analyze_run(data: dict, reference_data=None, verbose=False):
         np.savez(interpolated_isolines_path, **interpolated_isolines_dict)
         analysis_result["interpolated_isolines"] = interpolated_isolines_path
 
-        width = np.mean(simple.crack_width(interpolated_isolines))
+        width = np.mean(simple_deprecated.crack_width(interpolated_isolines))
         analysis_result["width"] = width
 
         if reference_data is not None:
@@ -149,7 +149,7 @@ def analyze_run(data: dict, reference_data=None, verbose=False):
                 for i in range(len(reference_interpolated_isolines_container.files))
             ]
             deviation = np.mean(
-                simple.crack_deviation(
+                simple_deprecated.crack_deviation(
                     isolines=interpolated_isolines,
                     reference_isolines=reference_interpolated_isolines,
                 )

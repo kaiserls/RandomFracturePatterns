@@ -26,9 +26,9 @@ def fractal_dimension(Z:np.ndarray, threshold, plot=False):
     Z_type = Z.dtype
     # If the type is float, also the threshold should be float and between 0 and 1
     if Z_type == np.float64:
-        assert 0 <= threshold <= 1
+        assert 0 <= threshold <= 1 and type(threshold) == float
     elif Z_type == np.uint8:
-        assert 0 <= threshold <= 255
+        assert 0 <= threshold <= 255 and type(threshold) == int
     else:
         raise ValueError(
             f"Z has dtype {Z_type}, but it should be either np.float64 or np.uint8."

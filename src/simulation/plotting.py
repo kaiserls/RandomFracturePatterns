@@ -28,15 +28,20 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
         axs = np.array([axs]).T
     for i, plot in enumerate(plots):
         max_val, min_val = np.max(other_runs[plot]), np.min(other_runs[plot])
+        hom_val = reference_run_df[plot].values[0]
+        max_val = max(max_val, hom_val)*1.1
+        min_val = min(min_val, hom_val)*0.9
         for j, std_lambda in enumerate(std_lambdas):
             if n_col_plots == 1:
                 ax = axs[i, 0]
             else:
                 ax = axs[i, j]
+
+            lengthscales_lambda_all = other_runs[other_runs["std_lambda"] == std_lambda]["lengthscale_lambda"]
+            lengthscales_lambda = lengthscales_lambda_all.unique()
+
             ax.scatter(
-                other_runs[other_runs["std_lambda"] == std_lambda][
-                    "lengthscale_lambda"
-                ],
+                lengthscales_lambda_all,
                 other_runs[other_runs["std_lambda"] == std_lambda][plot],
                 label=f"std_lambda={std_lambda:.2E}",
                 color=std_lambda_colors[j],
@@ -58,5 +63,18 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
             ax.set_xlim([1, 1000])
             # set log scale for x
             ax.set_xscale("log")
+
+            # Also plot the mean of the samples
+            
+
+            ax.plot(
+                lengthscales_lambda,
+                [
+                    other_runs.query(f"std_lambda == {std_lambda} & lengthscale_lambda == {lengthscale_lambda}")[plot].mean() for lengthscale_lambda in lengthscales_lambda
+                    # other_runs[other_runs["std_lambda"] == std_lambda & other_runs["lengthscale_lambda"] == lengtscale_lambda][plot].mean(axis=0) for lengtscale_lambda in lengthscales_lambda
+                ],
+                label=f"mean std_lambda={std_lambda:.2E}",
+                color=std_lambda_colors[j],
+            )
 
     plt.show()
