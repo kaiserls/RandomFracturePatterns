@@ -75,13 +75,6 @@ def analyze_from_dataframe(df: pd.DataFrame, **kwargs) -> list[dict]:
 
 def analyze_run(data: dict, reference_data=None, verbose=False):
     # analysis_result = data.copy()
-    # Define the possible analysis results. So even if the analysis fails, we dont get a key error.
-    possible_analysis_result = {
-        "fractal_dimension": None,
-        "isoline_length": None,
-        "skeleton_length": None,
-    }
-    data.update(possible_analysis_result)
     add_thresholded_image(data)
     analyze_isolines(data)
     analyze_skeleton(data)
@@ -158,9 +151,14 @@ def analyze_fractal(data: dict):
 def analyze_curvature(data: dict):
     OP_01 = np.load(data["OP_01"])
     OP_01_isolines = isolines.isoline(OP_01, iso_value=data["iso_value"])
-    curvature_values = []
+    curvatures = []
     for isoline in OP_01_isolines:
-        curvature_value = curvature.calc_curvature(contour=isoline, stride=data["curvature_stride"])
-        curvature_values.append(curvature_value)
-    curvature_value = sum(curvature_values)
-    data["curvature"] = curvature_value
+        if len(isoline) <= data["curvature_stride"]:
+            continue
+        local_curvature = curvature.calc_local_curvature(contour=isoline, stride=data["curvature_stride"])
+        curvature_value = np.sum(local_curvature)
+        curvatures.append(curvature_value)
+    total_curvature = sum(curvatures)
+    data["curvature"] = total_curvature
+
+    # Smooth the curvature 

@@ -13,7 +13,7 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     # drop outliers where the length is lower than 1000. This indicates crashes, because the simulation domain is 1000 long.
     other_runs = other_runs[other_runs["isoline_length"] > 999]
 
-    plots = ["fractal_dimension", "isoline_length", "skeleton_length"]
+    plots = ["fractal_dimension", "isoline_length", "skeleton_length", "curvature"]
     n_row_plots = len(plots)
 
     std_lambdas = other_runs["std_lambda"].unique()

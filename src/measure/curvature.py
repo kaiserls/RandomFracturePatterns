@@ -1,6 +1,7 @@
 import numpy as np
 
-def calc_curvature(contour,stride=1):
+def calc_local_curvature(contour,stride=1) -> np.ndarray:
+    """Calc the curvature at every point of the contour"""
     local_curvatures=[]
     assert stride<len(contour),"stride must be shorther than length of contour"
 
@@ -18,4 +19,5 @@ def calc_curvature(contour,stride=1):
         curvature_at_i=np.sqrt(4*(f2y*f1x-f2x*f1y)**2/denominator) if denominator > 1e-12 else -1
 
         local_curvatures.append(curvature_at_i)
-    return local_curvatures
+
+    return np.array(local_curvatures)
