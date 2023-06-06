@@ -4,7 +4,7 @@ import subprocess
 
 from src.utils.path_helpers import get_pandas_app_path
 
-import src.gs_generator as gs_generator
+import src.utils.random_field_generator as random_field_generator
 
 
 def create_cmd(parameters: dict):
@@ -40,7 +40,7 @@ def save_cmd(parameters, cmd):
 def random_field(parameters):
     app_path = get_pandas_app_path()
     coords = np.loadtxt(parameters["grid_file"], delimiter=" ", ndmin=2)
-    gs_generator.generate_field_data(
+    random_field_generator.generate_field_data(
         min_X=parameters["x_min"],
         max_X=parameters["x_max"],
         min_Y=parameters["y_min"],

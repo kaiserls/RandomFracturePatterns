@@ -1,5 +1,6 @@
 import pandas as pd
-from src.utils.mesh_helpers import tec_to_vtk, to_structured_pv, clean_tec_file
+from src.utils.tec import tec_to_vtk, clean_tec_file
+from src.utils.structured_mesh import to_structured_pv, cell_area_from_mesh, cell_lengths_from_mesh
 
 STRUCTURED_MESH = {
     # Take the full length of the domain where the crack is located
@@ -36,14 +37,18 @@ def postprocess_run(simulation_result: dict):
 
     clean_tec_file(tec_path.format(run), cleaned_tec_path.format(run))
     tec_to_vtk(cleaned_tec_path.format(run), vtk_path.format(run))
-    to_structured_pv(
+    stgrid = to_structured_pv(
         vtk_path.format(run), vtk_structured_path.format(run), **STRUCTURED_MESH
     )
+    structured_dx, structured_dy = cell_lengths_from_mesh(stgrid)
+    structured_dA = cell_area_from_mesh(stgrid)
 
     postprocessing_result.update(STRUCTURED_MESH)
     postprocessing_result["cleaned_tec"] = cleaned_tec_path.format(run)
     postprocessing_result["vtk"] = vtk_path.format(run)
     postprocessing_result["vtk_structured"] = vtk_structured_path.format(run)
-    postprocessing_result["run"] = run
+    postprocessing_result["structured_dx"] = structured_dx
+    postprocessing_result["structured_dy"] = structured_dy
+    postprocessing_result["structured_dA"] = structured_dA
 
     return postprocessing_result

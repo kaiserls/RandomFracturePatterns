@@ -1,22 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-
-def pixel_area(min_x, max_x, min_y, max_y, n_discretization_x, n_discretization_y):
-    """Calculate the area of a single pixel in the domain."""
-    dx = (max_x - min_x) / n_discretization_x
-    dy = (max_y - min_y) / n_discretization_y
-    return dx * dy
-
-
 def crack_volume(Z, dA, threshold=0.9):
-    # Only for 2d image
-    assert len(Z.shape) == 2
-
-    # Calculate the volume of the crack.
-    # The crack volume is defined as the number of pixels that are above the threshold times the area of a pixel.
-    # The area of a pixel is dA.
-
+    assert len(Z.shape) == 2 # Only for 2d image
     volume = np.sum(Z > threshold) * dA
     return volume
 

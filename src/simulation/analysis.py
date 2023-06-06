@@ -8,8 +8,7 @@ import numpy as np
 import src.measure.fractal as fractal
 import src.deprecated.simple_deprecated as simple_deprecated
 
-from src.measure.fractal import fractal_dimension, crack_volume, pixel_area
-from src.deprecated.simple_deprecated import crack_width, crack_deviation, crack_length
+from src.measure.fractal import fractal_dimension, crack_volume
 from src.measure.isolines import (
     isolines_from_vtk,
     interpolate_isolines,
@@ -95,7 +94,7 @@ def analyze_run(data: dict, reference_data=None, verbose=False):
     fractal_dimension = fractal.fractal_dimension(Z=img[:, :, 1], threshold=0.9)
     analysis_result["fractal_dimension"] = fractal_dimension
 
-    dA = fractal.pixel_area(
+    dA = pixel_area(
         min_x=data["structured_mesh_min_x"],
         max_x=data["structured_mesh_max_x"],
         n_discretization_x=data["structured_mesh_n_discretization_x"],
