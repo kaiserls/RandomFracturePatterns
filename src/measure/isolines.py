@@ -34,15 +34,6 @@ def interpolate_isolines(isolines, target_n_points, x_min, x_max):
         np.array([x, interp1d(c[:, 0], c[:, 1], kind="cubic")(x)]).T for c in isolines
     ]
 
-def mesh_data_from_vtk(mesh_file):
-    mesh = pv.read(mesh_file)
-    data = reshape_data(mesh, mesh["OP"])
-    return mesh, data
-
-def data_to_0_255(data):
-    data_01 = (data - data.min()) / (data.max() - data.min())
-    return (data_01 * 255).astype(np.uint8)
-
 def isolines_image_cv2(mesh_file, iso_value, contour_thickness):
     """Load the strucuted grid with data OP from the vtk file, generate contours with cv2,
     return an image with the contours drawn on it"""

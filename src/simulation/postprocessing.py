@@ -6,11 +6,11 @@ STRUCTURED_MESH = {
     # Take the full length of the domain where the crack is located
     "structured_mesh_min_x": 0,
     "structured_mesh_max_x": 1000,
-    "structured_mesh_n_discretization_x": 1000,
+    "structured_mesh_n_x": 1000,
     # Take only the height of the domain where the crack is located (i.e. the crack is located in the middle of the domain)
     "structured_mesh_min_y": -250,
     "structured_mesh_max_y": 250,
-    "structured_mesh_n_discretization_y": 500,
+    "structured_mesh_n_y": 500,
 }
 
 # Define the paths to the tecplot and vtk files.
@@ -33,22 +33,24 @@ def postprocess(simulation_results: list[dict]):
 
 def postprocess_run(simulation_result: dict):
     postprocessing_result = simulation_result.copy()
+    postprocessing_result.update(STRUCTURED_MESH)
     run = postprocessing_result["run"]
 
     clean_tec_file(tec_path.format(run), cleaned_tec_path.format(run))
+    postprocessing_result["cleaned_tec"] = cleaned_tec_path.format(run)
+
     tec_to_vtk(cleaned_tec_path.format(run), vtk_path.format(run))
-    stgrid = to_structured_pv(
+    postprocessing_result["vtk"] = vtk_path.format(run)
+
+    structured_grid = to_structured_pv(
         vtk_path.format(run), vtk_structured_path.format(run), **STRUCTURED_MESH
     )
-    structured_dx, structured_dy = cell_lengths_from_mesh(stgrid)
-    structured_dA = cell_area_from_mesh(stgrid)
-
-    postprocessing_result.update(STRUCTURED_MESH)
-    postprocessing_result["cleaned_tec"] = cleaned_tec_path.format(run)
-    postprocessing_result["vtk"] = vtk_path.format(run)
     postprocessing_result["vtk_structured"] = vtk_structured_path.format(run)
-    postprocessing_result["structured_dx"] = structured_dx
-    postprocessing_result["structured_dy"] = structured_dy
-    postprocessing_result["structured_dA"] = structured_dA
+
+    structured_dx, structured_dy = cell_lengths_from_mesh(structured_grid)
+    structured_dA = cell_area_from_mesh(structured_grid)
+    postprocessing_result["structured_mesh_dx"] = structured_dx
+    postprocessing_result["structured_mesh_dy"] = structured_dy
+    postprocessing_result["structured_mesh_dA"] = structured_dA
 
     return postprocessing_result

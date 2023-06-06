@@ -97,10 +97,10 @@ def analyze_run(data: dict, reference_data=None, verbose=False):
     dA = pixel_area(
         min_x=data["structured_mesh_min_x"],
         max_x=data["structured_mesh_max_x"],
-        n_discretization_x=data["structured_mesh_n_discretization_x"],
+        n_discretization_x=data["structured_mesh_n_x"],
         min_y=data["structured_mesh_min_y"],
         max_y=data["structured_mesh_max_y"],
-        n_discretization_y=data["structured_mesh_n_discretization_y"],
+        n_discretization_y=data["structured_mesh_n_y"],
     )
     volume = fractal.crack_volume(Z=img[:, :, 1], dA=dA)
     analysis_result["volume"] = volume

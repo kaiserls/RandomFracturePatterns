@@ -1,29 +1,22 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-def crack_volume(Z, dA, threshold=0.9):
-    assert len(Z.shape) == 2 # Only for 2d image
-    volume = np.sum(Z > threshold) * dA
-    return volume
+from src.utils.image_type import is_01_image_with_threshold
 
+# Source: https://gist.github.com/viveksck/1110dfca01e4ec2c608515f0d5a5b1d1
+def fractal_dimension(Z:np.ndarray, threshold: float, plot=False) -> float:
+    """Estimate the fractal dimension of a 2d image using the box-counting method and a polynomial fit to the log-log plot of the box-count vs box-size.
 
-def fractal_dimension(Z:np.ndarray, threshold, plot=False):
-    # Get the type of the numpy array Z
-    Z_type = Z.dtype
-    # If the type is float, also the threshold should be float and between 0 and 1
-    if Z_type == np.float64:
-        assert 0 <= threshold <= 1 and type(threshold) == float
-    elif Z_type == np.uint8:
-        assert 0 <= threshold <= 255 and type(threshold) == int
-    else:
-        raise ValueError(
-            f"Z has dtype {Z_type}, but it should be either np.float64 or np.uint8."
-        )
+    Args:
+        Z (np.ndarray): Image given asn numpy array with dtype either np.float64 in the range [0, 1]. Use 0 to denote background(empty) and 1 to denote an object(filled).
+        threshold (float): Threshold over which an image pixel is considered to be filled.
+        plot (bool, optional): Plot the image. Defaults to False.
 
-    # Only for 2d image
-    assert len(Z.shape) == 2
+    Returns:
+        float: Fractal dimension of the image.
+    """    
 
-    # assert that the image is in [0, ]
+    assert is_01_image_with_threshold(Z, threshold)
 
     # From https://github.com/rougier/numpy-100 (#87)
     def boxcount(Z, k):
@@ -37,7 +30,7 @@ def fractal_dimension(Z:np.ndarray, threshold, plot=False):
         return len(np.where((S > 0) & (S < k * k))[0])
 
     # Transform Z into a binary array
-    Z = (Z < threshold)
+    Z = (Z > threshold)
     if plot:
         plt.imshow(Z, interpolation="none", cmap="gray")
         plt.colorbar()

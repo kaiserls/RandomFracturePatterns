@@ -8,8 +8,8 @@ def to_structured_pv(
     structured_mesh_max_x,
     structured_mesh_min_y,
     structured_mesh_max_y,
-    structured_mesh_n_discretization_x,
-    structured_mesh_n_discretization_y,
+    structured_mesh_n_x,
+    structured_mesh_n_y,
     field_name: str = "OP",
     plot=False,
 ) -> pv.StructuredGrid:
@@ -19,13 +19,13 @@ def to_structured_pv(
     x = np.linspace(
         structured_mesh_min_x,
         structured_mesh_max_x,
-        structured_mesh_n_discretization_x,
+        structured_mesh_n_x,
         dtype=np.float32,
     )
     y = np.linspace(
         structured_mesh_min_y,
         structured_mesh_max_y,
-        structured_mesh_n_discretization_y,
+        structured_mesh_n_y,
         dtype=np.float32,
     )
     z = np.linspace(0.0, 0.0, 1, dtype=np.float32)
@@ -94,3 +94,12 @@ def reshape_points(mesh: pv.StructuredGrid, points: np.ndarray) -> np.ndarray:
     """reshape the points to the shape of the mesh"""
     points = points.reshape(np.array(mesh.dimensions[0:2], 3), order="F")
     return points
+
+def field_as_2d_array_from_mesh(mesh: pv.StructuredGrid, field_name: str) -> np.ndarray:
+    """Get the data from the mesh as a 2D array"""
+    return reshape_data(mesh, mesh[field_name])
+
+def mesh_and_2d_data_from_vtk(mesh_file, field_name: str) -> np.ndarray:
+    mesh = pv.read(mesh_file)
+    data = reshape_data(mesh, mesh["OP"])
+    return mesh, data
