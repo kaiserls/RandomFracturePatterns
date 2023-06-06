@@ -1,6 +1,7 @@
-import pandas as pd
+import numpy as np
 from src.utils.tec import tec_to_vtk, clean_tec_file
-from src.utils.structured_mesh import to_structured_pv, cell_area_from_mesh, cell_lengths_from_mesh
+from src.utils.structured_mesh import field_as_2d_array_from_mesh, to_structured_pv, cell_area_from_mesh, cell_lengths_from_mesh
+from src.utils.image_type import transform_01_to_0255
 
 STRUCTURED_MESH = {
     # Take the full length of the domain where the crack is located
@@ -36,21 +37,34 @@ def postprocess_run(simulation_result: dict):
     postprocessing_result.update(STRUCTURED_MESH)
     run = postprocessing_result["run"]
 
+    # Tec to vtk
     clean_tec_file(tec_path.format(run), cleaned_tec_path.format(run))
     postprocessing_result["cleaned_tec"] = cleaned_tec_path.format(run)
-
     tec_to_vtk(cleaned_tec_path.format(run), vtk_path.format(run))
     postprocessing_result["vtk"] = vtk_path.format(run)
 
+    # unstructured to structured vtk and taking part of the domain according to the STRUCTURED_MESH dict
     structured_grid = to_structured_pv(
         vtk_path.format(run), vtk_structured_path.format(run), **STRUCTURED_MESH
     )
     postprocessing_result["vtk_structured"] = vtk_structured_path.format(run)
 
+    # Structured grid cell lengths and areas
     structured_dx, structured_dy = cell_lengths_from_mesh(structured_grid)
     structured_dA = cell_area_from_mesh(structured_grid)
     postprocessing_result["structured_mesh_dx"] = structured_dx
     postprocessing_result["structured_mesh_dy"] = structured_dy
     postprocessing_result["structured_mesh_dA"] = structured_dA
+
+    # Pure data as numpy arrays
+    OP_01 = field_as_2d_array_from_mesh(structured_grid, "OP")
+    OP_01_path = "results/data/OP_01.npy"
+    np.save(OP_01_path, OP_01)
+    postprocessing_result["OP_01"] = OP_01_path
+
+    OP_255 = transform_01_to_0255(OP_01)
+    OP_255_path = "results/data/OP_255.npy"
+    np.save(OP_255_path, OP_255)
+    postprocessing_result["OP_255"] = OP_255_path
 
     return postprocessing_result
