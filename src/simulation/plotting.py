@@ -11,9 +11,9 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     # other
     other_runs = df[df["homogeneous"] == False]
     # drop outliers where the length is lower than 1000. This indicates crashes, because the simulation domain is 1000 long.
-    other_runs = other_runs[other_runs["length"] > 999]
+    other_runs = other_runs[other_runs["isoline_length"] > 999]
 
-    plots = ["fractal_dimension", "volume", "length", "width", "deviation", "max_deviation_from_middle"]
+    plots = ["fractal_dimension", "isoline_length", "skeleton_length"]
     n_row_plots = len(plots)
 
     std_lambdas = other_runs["std_lambda"].unique()

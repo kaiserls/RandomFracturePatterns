@@ -1,13 +1,14 @@
 import numpy as np
 from src.utils.tec import tec_to_vtk, clean_tec_file
 from src.utils.structured_mesh import field_as_2d_array_from_mesh, to_structured_pv, cell_area_from_mesh, cell_lengths_from_mesh
-from src.utils.image_type import transform_01_to_0255
+from src.utils.image_type import transform_to_01, transform_01_to_0255
+import logging
 
 STRUCTURED_MESH = {
     # Take the full length of the domain where the crack is located
-    "structured_mesh_min_x": 0,
-    "structured_mesh_max_x": 1000,
-    "structured_mesh_n_x": 1000,
+    "structured_mesh_min_x": 50,
+    "structured_mesh_max_x": 850,
+    "structured_mesh_n_x": 800,
     # Take only the height of the domain where the crack is located (i.e. the crack is located in the middle of the domain)
     "structured_mesh_min_y": -250,
     "structured_mesh_max_y": 250,
@@ -27,6 +28,7 @@ vtk_structured_path = (
 def postprocess(simulation_results: list[dict]):
     postprocessing_results = []
     for simulation_result in simulation_results:
+        logging.info(f"Postprocessing run {simulation_result['run']}")
         postprocessing_result = postprocess_run(simulation_result)
         postprocessing_results.append(postprocessing_result)
     return postprocessing_results
@@ -57,14 +59,15 @@ def postprocess_run(simulation_result: dict):
     postprocessing_result["structured_mesh_dA"] = structured_dA
 
     # Pure data as numpy arrays
-    OP_01 = field_as_2d_array_from_mesh(structured_grid, "OP")
-    OP_01_path = "results/data/OP_01.npy"
+    OP = field_as_2d_array_from_mesh(structured_grid, "OP")
+    OP_01 = transform_to_01(OP)
+    OP_01_path = f"results/data/OP_01_{run}.npy"
     np.save(OP_01_path, OP_01)
     postprocessing_result["OP_01"] = OP_01_path
 
-    OP_255 = transform_01_to_0255(OP_01)
-    OP_255_path = "results/data/OP_255.npy"
-    np.save(OP_255_path, OP_255)
-    postprocessing_result["OP_255"] = OP_255_path
+    OP_0255 = transform_01_to_0255(OP_01)
+    OP_0255_path = f"results/data/OP_0255_{run}.npy"
+    np.save(OP_0255_path, OP_0255)
+    postprocessing_result["OP_0255"] = OP_0255_path
 
     return postprocessing_result

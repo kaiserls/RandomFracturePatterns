@@ -1,20 +1,15 @@
-import os
-import traceback
+import logging
 
 from PIL import Image
 import pandas as pd
 import numpy as np
+import cv2
+from scipy import ndimage
+import skimage.morphology as morphology
 
+from src.measure import curvature, simple
 import src.measure.fractal as fractal
-import src.deprecated.simple_deprecated as simple_deprecated
-
-from src.measure.fractal import fractal_dimension, crack_volume
-from src.measure.isolines import (
-    isolines_from_vtk,
-    interpolate_isolines,
-    isolines_image_cv2,
-)
-
+import src.measure.isolines as isolines
 
 def analyze(postprocessing_results: list[dict]):
     postprocessing_result_df = pd.DataFrame(postprocessing_results)
@@ -25,6 +20,19 @@ def analyze_from_csv_file(postprocessing_result_file: str):
     postprocessing_result_df = pd.read_csv(postprocessing_result_file, index_col=0)
     return analyze_from_dataframe(postprocessing_result_df)
 
+def get_reference_run(df: pd.DataFrame) -> dict:
+    """Get the reference run. It is the one with homogeneous material properties.
+
+    Args:
+        df (pd.DataFrame): The simulation results including derieved quantities from the postprocessing.
+
+    Returns:
+        dict: The reference run.
+    """
+    reference_run = df[df["homogeneous"] == True].to_dict(orient="records")
+    assert len(reference_run) == 1, "There should be only one reference run."
+    reference_run = reference_run[0]
+    return reference_run
 
 def analyze_from_dataframe(df: pd.DataFrame, **kwargs) -> list[dict]:
     """Analyze the simulation results. They should come from the postprocessing.
@@ -38,132 +46,121 @@ def analyze_from_dataframe(df: pd.DataFrame, **kwargs) -> list[dict]:
     # Define the analysis parameters
     analysis_parameters = {
         "iso_value": 0.9,
-        "target_n_points": 201,
-        "contour_thickness": 1,
+        # "contour_thickness": 1,
+        "curvature_stride": 10,
     }
+    analysis_parameters["threshold"] = analysis_parameters["iso_value"] * 255
     analysis_parameters.update(kwargs)
-
     df = df.assign(**analysis_parameters)
 
-    # Get the reference run. It is the one with homogeneous material properties.
-    reference_run = df[df["homogeneous"] == True].to_dict(orient="records")
-    assert len(reference_run) == 1, "There should be only one reference run."
-    reference_run = reference_run[0]
 
     analysis_results = []
+    reference_run = get_reference_run(df)
+    stochastic_runs = df[df["homogeneous"] == False].to_dict(orient="records")
+
     # Analyze the reference run
+    logging.info(f"Analyzing reference run {reference_run['run']}")
     reference_analysis_results = analyze_run(reference_run)
-    reference_analysis_results.update(analysis_parameters)
     analysis_results.append(reference_analysis_results)
 
-    # Analyze all other runs
-    for i, row in df.iterrows():
-        if row["homogeneous"] == False:
-            analysis_result = analyze_run(
-                row, reference_data=reference_analysis_results
-            )
-            analysis_results.append(analysis_result)
+    # Analyze the stochastic runs
+    for row in stochastic_runs:
+        logging.info(f"Analyzing run {row['run']}")
+        analysis_result = analyze_run(
+            row, reference_data=reference_analysis_results
+        )
+        analysis_results.append(analysis_result)
 
     return analysis_results
 
-
 def analyze_run(data: dict, reference_data=None, verbose=False):
-    analysis_result = data.copy()
+    # analysis_result = data.copy()
     # Define the possible analysis results. So even if the analysis fails, we dont get a key error.
     possible_analysis_result = {
         "fractal_dimension": None,
-        "volume": None,
-        "length": None,
-        "width": None,
-        "deviation": None,
-        "isolines": None,
-        "interpolated_isolines": None,
+        "isoline_length": None,
+        "skeleton_length": None,
     }
-    analysis_result.update(possible_analysis_result)
+    data.update(possible_analysis_result)
+    add_thresholded_image(data)
+    analyze_isolines(data)
+    analyze_skeleton(data)
+    analyze_fractal(data)
+    analyze_curvature(data)
+    OP_01 = np.load(data["OP_01"])
+    data["OP_01_count"] = simple.count(OP_01, threshold=data["iso_value"])
+    data["OP_01_volume"] = simple.volume(OP_01, dA=data["structured_mesh_dA"], threshold=data["iso_value"])
+    return data
 
-    img = isolines_image_cv2(
-        mesh_file=data["vtk_structured"], iso_value=data["iso_value"], contour_thickness=data["contour_thickness"]
-    )
-    img_path = f"results/images/cv2_isolines_{data['run']}.png"
-    np_img_path = f"results/images/cv2_isolines_as_np_array_{data['run']}.npy"
-    analysis_result["cv2_isolines"] = img_path
-    analysis_result["cv2_isolines_as_np_array"] = np_img_path
-    Image.fromarray(img).save(img_path)
-    np.save(np_img_path, img)
 
-    fractal_dimension = fractal.fractal_dimension(Z=img[:, :, 1], threshold=0.9)
-    analysis_result["fractal_dimension"] = fractal_dimension
+def add_thresholded_image(data: dict):
+    run = data["run"]
 
-    dA = pixel_area(
-        min_x=data["structured_mesh_min_x"],
-        max_x=data["structured_mesh_max_x"],
-        n_discretization_x=data["structured_mesh_n_x"],
-        min_y=data["structured_mesh_min_y"],
-        max_y=data["structured_mesh_max_y"],
-        n_discretization_y=data["structured_mesh_n_y"],
-    )
-    volume = fractal.crack_volume(Z=img[:, :, 1], dA=dA)
-    analysis_result["volume"] = volume
+    # # Generate an black-white image of the crack with thresholding
+    OP_01 = np.load(data["OP_01"])
+    OP_01_bw = np.where(OP_01 > data["iso_value"], 1.0, 0.0)
+    OP_01_bw_path = f"results/images/OP_01_bw_{run}.npy"
+    np.save(OP_01_bw_path, OP_01_bw)
+    data["OP_01_bw"] = OP_01_bw_path
 
-    isolines = isolines_from_vtk(
-        mesh_file=data["vtk_structured"], iso_value=data["iso_value"]
-    )
-    # Save the isolines as a dict of numpy arrays
-    isolines_path = f"results/isolines/isolines_{data['run']}.npz"
-    isolines_dict = {f"isoline_{i}": isoline for i, isoline in enumerate(isolines)}
-    np.savez(isolines_path, **isolines_dict)
-    analysis_result["isolines"] = isolines_path
+    # Generate an black-white image of the crack with thresholding
+    OP_0255 = np.load(data["OP_0255"])
+    th, OP_0255_bw = cv2.threshold(OP_0255, data["threshold"], 255, cv2.THRESH_BINARY)
 
-    length = simple_deprecated.crack_length(isolines)
-    analysis_result["length"] = length
+    # save the data as a numpy array npy and as an image
+    OP_0255_bw_path = f"results/data/OP_0255_bw_{run}.npy"
+    np.save(OP_0255_bw_path, OP_0255_bw)
+    data["OP_0255_bw"] = OP_0255_bw_path
+    OP_0255_bw_image_path = f"results/images/OP_0255_bw_{run}.png"
+    Image.fromarray(OP_0255_bw).save(OP_0255_bw_image_path)
+    data["OP_0255_bw_image"] = OP_0255_bw_image_path
 
-    max_deviation_from_middle = simple_deprecated.max_deviation_from_middle(isolines)
-    analysis_result["max_deviation_from_middle"] = max_deviation_from_middle
+def analyze_isolines(data: dict):
+    OP_01 = np.load(data["OP_01"])
+    OP_01_isolines = isolines.isoline(OP_01, iso_value=data["iso_value"])
+    # Calculate the summed length of the isolines
+    isoline_length = sum([simple.line_length(line) for line in OP_01_isolines])
+    data["isoline_length"] = isoline_length
 
-    try:
-        interpolated_isolines = interpolate_isolines(
-            isolines,
-            target_n_points=data["target_n_points"],
-            x_min=data["structured_mesh_min_x"],
-            x_max=data["structured_mesh_max_x"],
-        )
-        interpolated_isolines_path = (
-            f"results/isolines/interpolated_isolines_{data['run']}.npz"
-        )
-        interpolated_isolines_dict = {
-            f"isoline_{i}": isoline for i, isoline in enumerate(interpolated_isolines)
-        }
-        np.savez(interpolated_isolines_path, **interpolated_isolines_dict)
-        analysis_result["interpolated_isolines"] = interpolated_isolines_path
+def analyze_skeleton(data: dict):
+    OP_01 = np.load(data["OP_01_bw"])
+    OP_binary = np.where(OP_01 > 0.5, 1.0, 0.0)
 
-        width = np.mean(simple_deprecated.crack_width(interpolated_isolines))
-        analysis_result["width"] = width
+    skeleton = morphology.skeletonize(OP_binary)
+    skeleton_path = f"results/data/skeleton_{data['run']}.npy"
+    np.save(skeleton_path, skeleton)
+    data["skeleton"] = skeleton_path
+    skeleton_image_path = f"results/images/skeleton_{data['run']}.png"
+    Image.fromarray(skeleton.astype(np.uint8) * 255).save(skeleton_image_path)
+    data["skeleton_image"] = skeleton_image_path
 
-        if reference_data is not None:
-            reference_interpolated_isolines_container = np.load(
-                reference_data["interpolated_isolines"]
-            )
-            reference_interpolated_isolines = [
-                reference_interpolated_isolines_container[f"isoline_{i}"]
-                for i in range(len(reference_interpolated_isolines_container.files))
-            ]
-            deviation = np.mean(
-                simple_deprecated.crack_deviation(
-                    isolines=interpolated_isolines,
-                    reference_isolines=reference_interpolated_isolines,
-                )
-            )
-            analysis_result["deviation"] = deviation
+    kernel = np.array([[2, 1, 2], [1, 0, 1], [2, 1, 2]])
+    neighbour_count = ndimage.convolve(skeleton.astype(np.uint8), kernel, mode='constant', cval=0)
+    straight = (neighbour_count == 2) & skeleton
+    diagonal = (neighbour_count == 4) & skeleton
+    half_diag = (neighbour_count == 3) & skeleton
 
-    except Exception as e:
-        if verbose:
-            print(
-                f"Error while measuring run {data['run']} with the following data:\n{data}"
-            )
-            print(f"Expect some analysis results to be None.")
-            # print(f"Error: {e}")
-            # print(''.join(traceback.TracebackException.from_exception(e).format()))
-        else:
-            pass
+    # Count the number of diagonal and straight pixels
+    straight_length = np.sum(straight)
+    diagonal_length = np.sum(diagonal) * np.sqrt(2)
+    half_diag_length = np.sum(half_diag) * (1 + np.sqrt(2) / 2)
 
-    return analysis_result
+    # Add them together to get the total length
+    skeleton_length = straight_length + diagonal_length + half_diag_length
+    data["skeleton_length"] = skeleton_length
+
+
+def analyze_fractal(data: dict):
+    OP_01 = np.load(data["OP_01"])
+    fractal_dimension = fractal.fractal_dimension(OP_01, threshold=data["iso_value"])
+    data["fractal_dimension"] = fractal_dimension
+
+def analyze_curvature(data: dict):
+    OP_01 = np.load(data["OP_01"])
+    OP_01_isolines = isolines.isoline(OP_01, iso_value=data["iso_value"])
+    curvature_values = []
+    for isoline in OP_01_isolines:
+        curvature_value = curvature.calc_curvature(contour=isoline, stride=data["curvature_stride"])
+        curvature_values.append(curvature_value)
+    curvature_value = sum(curvature_values)
+    data["curvature"] = curvature_value

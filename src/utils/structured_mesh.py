@@ -86,13 +86,13 @@ def cell_area_from_mesh(mesh: pv.StructuredGrid) -> float:
 def reshape_data(mesh: pv.StructuredGrid, data: np.ndarray) -> np.ndarray:
     """reshape the data to the shape of the mesh"""
     nx, ny, nz = mesh.dimensions
-    data = data.reshape(mesh.dimensions[0:2], order="F")
+    data = data.reshape(mesh.dimensions[0:2][::-1])
     return data
 
 
 def reshape_points(mesh: pv.StructuredGrid, points: np.ndarray) -> np.ndarray:
     """reshape the points to the shape of the mesh"""
-    points = points.reshape(np.array(mesh.dimensions[0:2], 3), order="F")
+    points = points.reshape(np.array(mesh.dimensions[0:2][::-1], 3))
     return points
 
 def field_as_2d_array_from_mesh(mesh: pv.StructuredGrid, field_name: str) -> np.ndarray:
