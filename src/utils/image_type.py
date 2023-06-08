@@ -6,10 +6,10 @@ def is_01_image(img: np.ndarray, lax: bool = False):
     is_float64 = img.dtype == np.float64
     return is_2d and is_01 and is_float64
 
-def is_01_image_with_threshold(img: np.ndarray, threshold: float):
-    is_01 = np.all(np.logical_and(img >= 0, img <= 1))
+def is_01_image_with_threshold(img: np.ndarray, threshold: float | np.float64):
+    is_01 = np.all(np.logical_and(img >= 0.0, img <= 1.0))
     is_float64 = img.dtype == np.float64
-    is_threshold = 0 <= threshold <= 1 and type(threshold) == float
+    is_threshold = 0.0 <= threshold <= 1.0
     return is_01 and is_float64 and is_threshold
 
 def is_0255_image(img: np.ndarray):

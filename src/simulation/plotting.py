@@ -3,17 +3,19 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def plot(df: pd.DataFrame, create_subplots: bool = False):
+def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
     """Visualize the results"""
     # reference_run
     reference_run_df = df[df["homogeneous"] == True]
-    assert len(reference_run_df) == 1, "There should be only one reference run."
+    # assert len(reference_run_df) == 1, "There should be only one reference run."
     # other
     other_runs = df[df["homogeneous"] == False]
     # drop outliers where the length is lower than 1000. This indicates crashes, because the simulation domain is 1000 long.
     other_runs = other_runs[other_runs["isoline_length"] > 999]
 
-    plots = ["fractal_dimension", "isoline_length", "skeleton_length", "curvature"]
+    if plots is None:
+        plots = ["volume", "count", "fractal_dimension", "isoline_length", "skeleton_length", "total_curvature", "skeleton_y_max", "sign_changes", "max_curvature", "max_curvature_smoothed"]
+
     n_row_plots = len(plots)
 
     std_lambdas = other_runs["std_lambda"].unique()
@@ -22,15 +24,16 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
     n_col_plots = n_std_lambdas if create_subplots else 1
 
     fig, axs = plt.subplots(
-        n_row_plots, n_col_plots, figsize=(10, 20), tight_layout=True
+        n_row_plots, n_col_plots, figsize=(10, 30), tight_layout=True
     )
     if n_col_plots == 1:
         axs = np.array([axs]).T
     for i, plot in enumerate(plots):
         max_val, min_val = np.max(other_runs[plot]), np.min(other_runs[plot])
-        hom_val = reference_run_df[plot].values[0]
-        max_val = max(max_val, hom_val)*1.1
-        min_val = min(min_val, hom_val)*0.9
+        if len(reference_run_df) > 0:
+            hom_val = reference_run_df[plot].values[0]
+            max_val = max(max_val, hom_val)*1.1
+            min_val = min(min_val, hom_val)*0.9
         for j, std_lambda in enumerate(std_lambdas):
             if n_col_plots == 1:
                 ax = axs[i, 0]
@@ -46,11 +49,11 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
                 label=f"std_lambda={std_lambda:.2E}",
                 color=std_lambda_colors[j],
             )
-
-            # Draw a horizontal line at the homogeneous case
-            ax.axhline(
-                reference_run_df[plot].values[0], color="red", label="homogeneous"
-            )
+            if len(reference_run_df) > 0:
+                # Draw a horizontal line at the homogeneous case
+                ax.axhline(
+                    reference_run_df[plot].values[0], color="red", label="homogeneous"
+                )
 
             # labels
             # if i == n_plots - 1:
@@ -65,8 +68,6 @@ def plot(df: pd.DataFrame, create_subplots: bool = False):
             ax.set_xscale("log")
 
             # Also plot the mean of the samples
-            
-
             ax.plot(
                 lengthscales_lambda,
                 [

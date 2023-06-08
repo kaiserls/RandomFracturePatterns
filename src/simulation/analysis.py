@@ -1,88 +1,61 @@
 import logging
 
 from PIL import Image
-import pandas as pd
+import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 from scipy import ndimage
+import scipy
 import skimage.morphology as morphology
 
 from src.measure import curvature, simple
 import src.measure.fractal as fractal
 import src.measure.isolines as isolines
 
-def analyze(postprocessing_results: list[dict]):
-    postprocessing_result_df = pd.DataFrame(postprocessing_results)
-    return analyze_from_dataframe(postprocessing_result_df)
-
-
-def analyze_from_csv_file(postprocessing_result_file: str):
-    postprocessing_result_df = pd.read_csv(postprocessing_result_file, index_col=0)
-    return analyze_from_dataframe(postprocessing_result_df)
-
-def get_reference_run(df: pd.DataFrame) -> dict:
-    """Get the reference run. It is the one with homogeneous material properties.
-
-    Args:
-        df (pd.DataFrame): The simulation results including derieved quantities from the postprocessing.
-
-    Returns:
-        dict: The reference run.
-    """
-    reference_run = df[df["homogeneous"] == True].to_dict(orient="records")
-    assert len(reference_run) == 1, "There should be only one reference run."
-    reference_run = reference_run[0]
-    return reference_run
-
-def analyze_from_dataframe(df: pd.DataFrame, **kwargs) -> list[dict]:
+def analyze(postprocessing_results: list[dict], **kwargs) -> list[dict]:
     """Analyze the simulation results. They should come from the postprocessing.
 
     Args:
-        df (pd.DataFrame): The simulation results including derieved quantities from the postprocessing.
-
+        postprocessing_results (list[dict]): The simulation results including derieved quantities from the postprocessing.
+    
     Returns:
-        list[dict]: The analysis results as a list of dictionaries.
+        list[dict]: The analysi s results as a list of dictionaries.
     """
+
     # Define the analysis parameters
     analysis_parameters = {
-        "iso_value": 0.9,
+        "iso_value": 0.98,
         # "contour_thickness": 1,
-        "curvature_stride": 10,
+        "curvature_smoothing_cycles": 4,
+        "curvature_smoothing_kernel_size": 3,
+        "curvature_smoothing_kernel_increase_size_factor": 3,
+        "curvature_smoothing_kernel_type": "ones",
+        "curvature_smoothing_stride": 2,
+        # "curvature_smoothing_kernel_sigma": 10,
     }
-    analysis_parameters["threshold"] = analysis_parameters["iso_value"] * 255
     analysis_parameters.update(kwargs)
-    df = df.assign(**analysis_parameters)
-
+    analysis_parameters["threshold"] = analysis_parameters["iso_value"] * 255
 
     analysis_results = []
-    reference_run = get_reference_run(df)
-    stochastic_runs = df[df["homogeneous"] == False].to_dict(orient="records")
-
-    # Analyze the reference run
-    logging.info(f"Analyzing reference run {reference_run['run']}")
-    reference_analysis_results = analyze_run(reference_run)
-    analysis_results.append(reference_analysis_results)
-
     # Analyze the stochastic runs
-    for row in stochastic_runs:
-        logging.info(f"Analyzing run {row['run']}")
-        analysis_result = analyze_run(
-            row, reference_data=reference_analysis_results
-        )
+    for postprocessing_result in postprocessing_results:
+        logging.info(f"Analyzing run {postprocessing_result['run']}")
+        postprocessing_result.update(analysis_parameters)
+        analysis_result = analyze_run(postprocessing_result)
         analysis_results.append(analysis_result)
 
     return analysis_results
 
-def analyze_run(data: dict, reference_data=None, verbose=False):
-    # analysis_result = data.copy()
+def analyze_run(postprocessing_result: dict) -> dict:
+    data = postprocessing_result
     add_thresholded_image(data)
     analyze_isolines(data)
     analyze_skeleton(data)
     analyze_fractal(data)
     analyze_curvature(data)
     OP_01 = np.load(data["OP_01"])
-    data["OP_01_count"] = simple.count(OP_01, threshold=data["iso_value"])
-    data["OP_01_volume"] = simple.volume(OP_01, dA=data["structured_mesh_dA"], threshold=data["iso_value"])
+    data["count"] = simple.count(OP_01, threshold=data["iso_value"])
+    data["volume"] = simple.volume(OP_01, dA=data["structured_mesh_dA"], threshold=data["iso_value"])
     return data
 
 
@@ -114,6 +87,8 @@ def analyze_isolines(data: dict):
     # Calculate the summed length of the isolines
     isoline_length = sum([simple.line_length(line) for line in OP_01_isolines])
     data["isoline_length"] = isoline_length
+    data["isoline_n_points"] = sum([len(line) for line in OP_01_isolines])
+    data["isoline_mean_segment_length"] = isoline_length / data["isoline_n_points"]
 
 def analyze_skeleton(data: dict):
     OP_01 = np.load(data["OP_01_bw"])
@@ -142,6 +117,11 @@ def analyze_skeleton(data: dict):
     skeleton_length = straight_length + diagonal_length + half_diag_length
     data["skeleton_length"] = skeleton_length
 
+    # Add the maximum y coordinate of a pixel of the skeleton
+    data["skeleton_y_max"] = np.max(np.where(skeleton)[0])
+    #TODO 0 or 1 as index?
+
+
 
 def analyze_fractal(data: dict):
     OP_01 = np.load(data["OP_01"])
@@ -151,14 +131,73 @@ def analyze_fractal(data: dict):
 def analyze_curvature(data: dict):
     OP_01 = np.load(data["OP_01"])
     OP_01_isolines = isolines.isoline(OP_01, iso_value=data["iso_value"])
-    curvatures = []
+    curvatures_pointwise = []
     for isoline in OP_01_isolines:
-        if len(isoline) <= data["curvature_stride"]:
-            continue
-        local_curvature = curvature.calc_local_curvature(contour=isoline, stride=data["curvature_stride"])
-        curvature_value = np.sum(local_curvature)
-        curvatures.append(curvature_value)
-    total_curvature = sum(curvatures)
-    data["curvature"] = total_curvature
+        curvature_pointwise = curvature.calc_local_curvature(isoline)
+        curvatures_pointwise.append(curvature_pointwise)
 
-    # Smooth the curvature 
+    # Total curvature
+    total_curvature = sum(np.sum(np.abs(curvature_pointwise)) for curvature_pointwise in curvatures_pointwise)
+    data["total_curvature"] = total_curvature
+    # Mean curvature
+    n_isolines = len(OP_01_isolines)
+    mean_curvature = sum(np.mean(curvature_pointwise) for curvature_pointwise in curvatures_pointwise) / n_isolines
+    data["mean_curvature"] = mean_curvature
+    # Max curvature
+    max_curvature = max(np.max(np.abs(curvature_pointwise)) for curvature_pointwise in curvatures_pointwise)
+    data["max_curvature"] = max_curvature
+    # Number of sign changes in the curvature
+    sign_changes = sum(np.sum(np.diff(np.sign(curvature_pointwise)) != 0) for curvature_pointwise in curvatures_pointwise)
+    data["sign_changes"] = sign_changes
+
+    # Curvatures smoothed by stride > 1:
+    smoothed_curvatures = []
+    for isoline in OP_01_isolines:
+        if len(isoline) < data["curvature_smoothing_stride"]:
+            print(len(isoline))
+            continue
+        smoothed_curvature = curvature.calc_local_curvature(isoline, stride=data["curvature_smoothing_stride"])
+        smoothed_curvatures.append(smoothed_curvature)
+    max_curvature_smoothed = max(np.max(smoothed_curvature) for smoothed_curvature in smoothed_curvatures)
+    data["max_curvature_smoothed"] = max_curvature_smoothed
+    sign_changes_smoothed = sum(np.sum(np.diff(np.sign(smoothed_curvature)) != 0) for smoothed_curvature in smoothed_curvatures)
+    data["sign_changes_smoothed"] = sign_changes_smoothed
+
+
+    def smoothing_kernel(kernel_size, kernel_type="ones", kernel_sigma=1.0):
+        if kernel_type == "ones":
+            kernel = np.ones(kernel_size)/kernel_size
+        elif data["curvature_smoothing_kernel_type"] == "gaussian":
+            kernel = scipy.signal.gaussian(kernel_size, kernel_sigma)
+        else:
+            raise ValueError(f"Unknown kernel type {data['curvature_smoothing_kernel_type']}")
+        return kernel
+
+    # plt.figure()
+    kernel_size = data["curvature_smoothing_kernel_size"]
+    for smoothing_cyle in range(1, data["curvature_smoothing_cycles"]+1):
+        kernel = smoothing_kernel(kernel_size)
+        total_smoothed_curvature = 0
+        # for i, c in enumerate(smoothed_curvatures):
+        for i, c in enumerate(OP_01_isolines):
+            smoothed_x = np.convolve(c[:,0], kernel, mode='same')
+            smoothed_y = np.convolve(c[:,1], kernel, mode='same')
+            smoothed_isoline = np.stack([smoothed_x, smoothed_y], axis=1)
+            smoothed_curvature = curvature.calc_local_curvature_old(smoothed_isoline)
+            total_smoothed_curvature += np.sum(np.abs(smoothed_curvature))
+            # if i==0: # Only select the first isoline for plotting. Else it gets too crowded
+            #     plt.plot(c, label=f"Smoothed curvature cycle {smoothing_cyle}")
+        data[f"curvature_smoothed_{smoothing_cyle}"] = total_smoothed_curvature 
+
+        kernel_size = kernel_size * data["curvature_smoothing_kernel_increase_size_factor"]
+
+    # Plot the total smoothed curvatures over the number of smoothing cycles together with the original curvature
+    curvatures = [data["total_curvature"]] + [data[f"curvature_smoothed_{i}"] for i in range(1, data["curvature_smoothing_cycles"]+1)]
+    np.save(f"results/data/curvatures_{data['run']}.npy", curvatures)
+    data["curvatures"] = f"results/data/curvatures_{data['run']}.npy"
+
+    # Estimate the convergence of the smoothed curvature with a polyfit and extracting the slope. use log log scale
+    x = np.arange(1, data["curvature_smoothing_cycles"]+2)
+    y = curvatures
+    p = np.polyfit(np.log(x), np.log(y), 1)
+    data["curvature_smoothing_convergence"] = -p[0]

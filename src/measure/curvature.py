@@ -1,6 +1,17 @@
 import numpy as np
 
-def calc_local_curvature(contour,stride=1) -> np.ndarray:
+def calc_local_curvature(curve, stride=1) -> np.ndarray:
+    """Calc the curvature at every point of the curve"""
+    dx = np.gradient(curve[::stride, 0])
+    dy = np.gradient(curve[::stride, 1])
+    d2x = np.gradient(dx)
+    d2y = np.gradient(dy)
+    nominator = dx * d2y - dy * d2x
+    denominator = dx ** 2 + dy ** 2 + 1e-11
+    curvature = nominator / denominator ** 1.5
+    return curvature
+
+def calc_local_curvature_old(contour,stride=1) -> np.ndarray:
     """Calc the curvature at every point of the contour"""
     local_curvatures=[]
     assert stride<len(contour),"stride must be shorther than length of contour"
