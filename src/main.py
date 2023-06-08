@@ -44,7 +44,7 @@ def main():
             # scheduler_options={"port": 0, "dashboard_address": ":8797"},
             remote_python="/usr/bin/python3.10"
         )
-        client = client(cluster)
+        client = Client(cluster)
 
     print("The client is: ", client)
     print("The scheduler is: ", client.scheduler_info())
