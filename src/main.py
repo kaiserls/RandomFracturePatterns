@@ -27,16 +27,16 @@ import src.simulation.plotting as plotting
 
 # There seems to be a difference between the code above and the bash command.
 # The bash command is working!
-# dask-ssh 129.69.167.191 129.69.167.193 --ssh-username lars_k
+# dask-ssh 129.69.167.191 129.69.167.192 129.69.167.193 --ssh-username lars_k --remote-python /usr/bin/python3.10
 
 
 def main():
     """The main function managing the simulation."""
-    cluster = LocalCluster(n_workers=14, threads_per_worker=1)
-    client = Client(cluster)  # Client("129.69.167.191:8786")
+    # cluster = LocalCluster(n_workers=14, threads_per_worker=1)
+    # client = Client(cluster)
+    client = Client("129.69.167.191:8786")
 
     print("The client is: ", client)
-    print("The cluster is: ", cluster)
     print("The scheduler is: ", client.scheduler_info())
     print("The workers are: ", client.has_what())
     print("The dashboard is: ", client.dashboard_link)
@@ -45,10 +45,7 @@ def main():
     scenarios = parameters.define_scenarios(default_parameters)
     pd.DataFrame(scenarios).to_csv("results/scenarios.csv")
 
-    # Create a fake_simulate function. Partial fill in the parameter "fake_run"
-    fake_simulate = partial(simulation.simulate, fake_run=True)
-
-    scenario_simulations = [delayed(fake_simulate)(scenario) for scenario in scenarios]
+    scenario_simulations = [delayed(simulation.simulate)(scenario) for scenario in scenarios]
     simulation_results = compute(
         *scenario_simulations
     )  # Compute all simulations in parallel
