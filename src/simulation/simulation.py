@@ -56,7 +56,7 @@ def random_field(parameters):
         run=parameters["run"],
         path=app_path,
         number_of_fields=1,
-        logNormal=parameters["log_distribution"],
+        lognormal=parameters["log_distribution"],
         plot=False,
         save_txt=True,
         save_vtk=True,

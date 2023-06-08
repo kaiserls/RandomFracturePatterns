@@ -23,7 +23,7 @@ def generate_field_data(
     run,
     path,
     number_of_fields=1,
-    logNormal=True,
+    lognormal=True,
     plot=False,
     save_txt=True,
     save_vtk=False,
@@ -32,7 +32,7 @@ def generate_field_data(
     seeds_lambda=None,
 ):
     """Generate the field data"""
-    if logNormal:
+    if lognormal:
         mean_mu_log = np.log(mean_mu**2 / np.sqrt(variance_mu + mean_mu**2))
         mean_lambda_log = np.log(
             mean_lambda**2 / np.sqrt(variance_lambda + mean_lambda**2)
@@ -90,7 +90,7 @@ def generate_field_data(
         lambda_srf(seed=seeds_lambda[i], store=f"field{i}")
         mu_srf(seed=seeds_mu[i], store=f"field{i}")
 
-        if logNormal:
+        if lognormal:
             mu_srf.transform("lognormal", field=f"field{i}")  # , process=True)
             lambda_srf.transform("lognormal", field=f"field{i}")  # , process=True)
 
