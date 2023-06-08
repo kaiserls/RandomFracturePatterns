@@ -69,7 +69,7 @@ def random_field(parameters):
 
 
 def simulate(parameters, fake_run=False):
-    results = parameters.copy()
+    results = parameters
     cmd = create_cmd(parameters)
     path_to_cmd = save_cmd(parameters, cmd)
     results["cmd"] = path_to_cmd
