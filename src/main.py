@@ -28,13 +28,23 @@ import src.simulation.plotting as plotting
 # There seems to be a difference between the code above and the bash command.
 # The bash command is working!
 # dask-ssh 129.69.167.191 129.69.167.192 129.69.167.193 --ssh-username lars_k --remote-python /usr/bin/python3.10
+# client = Client("129.69.167.191:8786")
 
 
 def main():
     """The main function managing the simulation."""
-    # cluster = LocalCluster(n_workers=14, threads_per_worker=1)
-    # client = Client(cluster)
-    client = Client("129.69.167.191:8786")
+    local = False
+    if local:
+        cluster = LocalCluster(n_workers=14, threads_per_worker=1)
+        client = Client(cluster)
+    else:
+        cluster = SSHCluster(
+            hosts=["129.69.167.191", "129.69.167.192", "129.69.167.193"],
+            connect_options={"known_hosts": None, "username": "lars_k"},
+            # scheduler_options={"port": 0, "dashboard_address": ":8797"},
+            remote_python="/usr/bin/python3.10"
+        )
+        client = client(cluster)
 
     print("The client is: ", client)
     print("The scheduler is: ", client.scheduler_info())
@@ -59,6 +69,8 @@ def main():
     analysis_results_table.to_csv("results/analysis_results.csv")
 
     plotting.plot(analysis_results_table)
+
+    client.close()
 
 
 if __name__ == "__main__":

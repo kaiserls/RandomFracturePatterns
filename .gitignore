@@ -1,5 +1,5 @@
 PANDAS_coop
-venv
+*venv*
 __pycache__
 *.csv
 *hosts*
