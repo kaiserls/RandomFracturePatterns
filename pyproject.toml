@@ -12,8 +12,10 @@ dependencies = [
     "scikit-image",
     "scipy",
     "opencv-python",
-    "dask",
+    "dask[complete]",
     "distributed",
     "bokeh",
     "Pillow",
+    "jinja2",
+    "asyncssh",
 ]
