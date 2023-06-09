@@ -40,14 +40,14 @@ def main():
         cluster = LocalCluster(n_workers=14, threads_per_worker=1)
         client = Client(cluster)
     else:
-        # cluster = SSHCluster(
-        #     hosts=["129.69.167.191", "129.69.167.192", "129.69.167.193"],
-        #     connect_options={"known_hosts": None, "username": "lars_k"},
-        #     # scheduler_options={"port": 0, "dashboard_address": ":8797"},
-        #     remote_python="/usr/bin/python3.10"
-        # )
-        # client = Client(cluster)
-        Client("129.69.167.191:8786")
+        cluster = SSHCluster(
+            hosts=["129.69.167.191", "129.69.167.192", "129.69.167.193"],
+            connect_options={"known_hosts": None, "username": "lars_k"},
+            # scheduler_options={"port": 0, "dashboard_address": ":8797"},
+            remote_python="/usr/bin/python3.10"
+        )
+        client = Client(cluster)
+        #Client("129.69.167.191:8786")
 
     print("The client is: ", client)
     print("The scheduler is: ", client.scheduler_info())
