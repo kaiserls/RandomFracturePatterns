@@ -32,7 +32,7 @@ import fracsim.simulation.plotting as plotting
 
 def main():
     """The main function managing the simulation."""
-    logging.basicConfig(filename=f"log_{datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}", encoding='utf-8', level=logging.INFO)
+    logging.basicConfig(filename=f"log_{datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}.txt", encoding='utf-8', level=logging.INFO)
     logging.info(f"Started logging at {datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}")
 
     local = False
