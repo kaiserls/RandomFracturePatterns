@@ -1,15 +1,16 @@
 import numpy as np
 import jinja2
 import subprocess
+import logging
 
 from fracsim.utils.path_helpers import get_pandas_app_path
-
 import fracsim.utils.random_field_generator as random_field_generator
 
 
 def create_cmd(parameters: dict):
     # Use jinja2 to create the cmd file from the template
     app_path = get_pandas_app_path()
+    logging.info("Jinja2 template path: ", app_path)
     environment = jinja2.Environment(
         loader=jinja2.FileSystemLoader(app_path),
     )
