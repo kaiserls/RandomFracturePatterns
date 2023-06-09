@@ -21,11 +21,14 @@ def create_cmd(parameters: dict):
         template_name = "cmd_direct"
     else:
         template_name = "cmd"
-
-    template = environment.get_template(template_name)
-    cmd = template.render(
-        run=parameters["run"],
-    )
+    try:
+        template = environment.get_template(template_name)
+        cmd = template.render(
+            run=parameters["run"],
+        )
+    except:
+        logging.error(f"Could not load template {template_name}. The template path is {app_path}.")
+        raise FileNotFoundError(f"Could not load template {template_name}. The template path is {app_path}.")
     return cmd
 
 
