@@ -40,8 +40,16 @@ def main():
         cluster = LocalCluster(n_workers=14, threads_per_worker=1)
         client = Client(cluster)
     else:
+        try:
+            # open hosts file and read lines into list of ip addresses
+            with open("hosts", "r") as f:
+                hosts = f.readlines()
+            hosts = [host.strip() for host in hosts]
+        except FileNotFoundError:
+            logging.error("Could not find 'hosts' file.")
+            raise FileNotFoundError("Could not find hosts file.")
         cluster = SSHCluster(
-            hosts=["129.69.167.191", "129.69.167.192", "129.69.167.193"],
+            hosts=hosts,
             connect_options={"known_hosts": None, "username": "lars_k"},
             # scheduler_options={"port": 0, "dashboard_address": ":8797"},
             remote_python="/usr/bin/python3.10"
