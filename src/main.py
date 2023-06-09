@@ -46,6 +46,7 @@ def main():
             remote_python="/usr/bin/python3.10"
         )
         client = Client(cluster)
+        print(client.run(os.cwd))
 
     print("The client is: ", client)
     print("The scheduler is: ", client.scheduler_info())

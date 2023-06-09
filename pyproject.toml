@@ -1,0 +1,19 @@
+[project]
+name = "fracsim"
+version = "0.0.1"
+dependencies = [
+    "numpy",
+    "pandas",
+    "psutil",
+    "gstools",
+    "matplotlib",
+    "meshio",
+    "pyvista",
+    "scikit-image",
+    "scipy",
+    "opencv-python",
+    "dask",
+    "distributed",
+    "bokeh",
+    "Pillow",
+]
