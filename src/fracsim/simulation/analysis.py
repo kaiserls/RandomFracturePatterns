@@ -8,9 +8,9 @@ from scipy import ndimage
 import scipy
 import skimage.morphology as morphology
 
-from src.measure import curvature, simple
-import src.measure.fractal as fractal
-import src.measure.isolines as isolines
+from fracsim.measure import curvature, simple
+import fracsim.measure.fractal as fractal
+import fracsim.measure.isolines as isolines
 
 def analyze(postprocessing_results: list[dict], **kwargs) -> list[dict]:
     """Analyze the simulation results. They should come from the postprocessing.

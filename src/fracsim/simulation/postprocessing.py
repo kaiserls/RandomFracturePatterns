@@ -1,7 +1,7 @@
 import numpy as np
-from src.utils.tec import tec_to_vtk, clean_tec_file
-from src.utils.structured_mesh import field_as_2d_array_from_mesh, to_structured_pv, cell_area_from_mesh, cell_lengths_from_mesh
-from src.utils.image_type import transform_to_01, transform_01_to_0255
+from fracsim.utils.tec import tec_to_vtk, clean_tec_file
+from fracsim.utils.structured_mesh import field_as_2d_array_from_mesh, to_structured_pv, cell_area_from_mesh, cell_lengths_from_mesh
+from fracsim.utils.image_type import transform_to_01, transform_01_to_0255
 import logging
 
 STRUCTURED_MESH = {

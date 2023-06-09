@@ -2,9 +2,9 @@ import numpy as np
 import jinja2
 import subprocess
 
-from src.utils.path_helpers import get_pandas_app_path
+from fracsim.utils.path_helpers import get_pandas_app_path
 
-import src.utils.random_field_generator as random_field_generator
+import fracsim.utils.random_field_generator as random_field_generator
 
 
 def create_cmd(parameters: dict):

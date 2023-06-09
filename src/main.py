@@ -5,17 +5,14 @@ import psutil
 import sys
 import os
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
 from dask.distributed import Client, LocalCluster, SSHCluster
 from dask import delayed, compute
 
-import src.simulation.parameters as parameters
-import src.simulation.simulation as simulation
-import src.simulation.postprocessing as postprocessing
-import src.simulation.analysis as analysis
-import src.simulation.plotting as plotting
+import fracsim.simulation.parameters as parameters
+import fracsim.simulation.simulation as simulation
+import fracsim.simulation.postprocessing as postprocessing
+import fracsim.simulation.analysis as analysis
+import fracsim.simulation.plotting as plotting
 
 ########################## SSHCluster #########################################
 # cluster = LocalCluster()

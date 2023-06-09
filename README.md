@@ -44,7 +44,7 @@ python src/main.py
 If this does fail due due to imports failing try:
 
 ```bash
-python3 -m src.main
+python3 -m src.fracsim.main
 ```
 
 ## Computing on a server
@@ -74,7 +74,7 @@ Advanced usage:
 
 screen:
 
-1. Start computation with ```screen -dm bash -c 'python3 -m src.main' -S theOptionalScreenName -L```
+1. Start computation with ```screen -dm bash -c 'python3 -m src.fracsim.main' -S theOptionalScreenName -L```
 2. Reattach with ```screen -r theOptionalScreenName```
 3. Detach from screen with ```strg+a strg+d```
 4. List screens with ```screen -ls``` to check if finished

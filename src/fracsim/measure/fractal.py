@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.utils.image_type import is_01_image_with_threshold
+from fracsim.utils.image_type import is_01_image_with_threshold
 
 # Source: https://gist.github.com/viveksck/1110dfca01e4ec2c608515f0d5a5b1d1
 def fractal_dimension(Z:np.ndarray, threshold: float, plot=False) -> float:

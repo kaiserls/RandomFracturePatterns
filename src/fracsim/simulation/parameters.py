@@ -1,4 +1,4 @@
-from src.utils.path_helpers import get_pandas_app_path
+from fracsim.utils.path_helpers import get_pandas_app_path
 from gstools.random import MasterRNG
 
 

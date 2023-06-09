@@ -1,8 +1,8 @@
 import skimage
 import numpy as np
 import pyvista as pv
-from src.utils.structured_mesh import scale_pixels_to_coordinates
-from src.utils.image_type import is_01_image_with_threshold
+from fracsim.utils.structured_mesh import scale_pixels_to_coordinates
+from fracsim.utils.image_type import is_01_image_with_threshold
 
 def isoline(image_01, iso_value):
     assert is_01_image_with_threshold(image_01, iso_value), "image_01 must be a 01 image and threshold must be between 0 and 1"

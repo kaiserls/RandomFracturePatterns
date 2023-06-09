@@ -1,6 +1,6 @@
 import pyvista as pv
 
-from src.utils.structured_mesh import (
+from fracsim.utils.structured_mesh import (
     reshape_data,
 )
 
