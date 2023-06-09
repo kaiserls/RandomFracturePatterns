@@ -11,6 +11,10 @@ def get_pandas_app_path():
         for i, dir in enumerate(cwd_path.parts):
             if dir == repo_name:
                 break
+            if i == len(cwd_path.parts) - 1:
+                raise ValueError(
+                    f"Could not find repository {repo_name} in path {cwd_path}"
+                )
         repo_path = Path(*cwd_path.parts[0 : i + 1])
         return repo_path
 
