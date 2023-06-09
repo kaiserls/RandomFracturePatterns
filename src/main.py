@@ -1,5 +1,6 @@
 from functools import partial
-import time
+import logging
+from datetime import datetime
 import pandas as pd
 import psutil
 import sys
@@ -31,18 +32,22 @@ import fracsim.simulation.plotting as plotting
 
 def main():
     """The main function managing the simulation."""
+    logging.basicConfig(filename=f"log_{datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}", encoding='utf-8', level=logging.INFO)
+    logging.info(f"Started logging at {datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}")
+
     local = False
     if local:
         cluster = LocalCluster(n_workers=14, threads_per_worker=1)
         client = Client(cluster)
     else:
-        cluster = SSHCluster(
-            hosts=["129.69.167.191", "129.69.167.192", "129.69.167.193"],
-            connect_options={"known_hosts": None, "username": "lars_k"},
-            # scheduler_options={"port": 0, "dashboard_address": ":8797"},
-            remote_python="/usr/bin/python3.10"
-        )
-        client = Client(cluster)
+        # cluster = SSHCluster(
+        #     hosts=["129.69.167.191", "129.69.167.192", "129.69.167.193"],
+        #     connect_options={"known_hosts": None, "username": "lars_k"},
+        #     # scheduler_options={"port": 0, "dashboard_address": ":8797"},
+        #     remote_python="/usr/bin/python3.10"
+        # )
+        # client = Client(cluster)
+        Client("129.69.167.191:8786")
 
     print("The client is: ", client)
     print("The scheduler is: ", client.scheduler_info())
