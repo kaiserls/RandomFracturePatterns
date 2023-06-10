@@ -7,7 +7,7 @@ REPOSITORY_NAME = "RandomFracturePatterns"
 
 
 def get_pandas_app_path():
-    def get_repository_path(repo_name: str) -> str:
+    def get_repository_path(repo_name: str) -> Path:
         cwd_path = Path.cwd()
         for i, dir in enumerate(cwd_path.parts):
             if dir == repo_name:
@@ -21,6 +21,7 @@ def get_pandas_app_path():
     try:
         with open("repo_path", "r") as f:
             repo_path = f.read()
+            repo_path = Path(repo_path)
     except FileNotFoundError:
         logging.error("Could not find file repo_path. Please create it. Trying to guess the path.")
         repo_path = get_repository_path(REPOSITORY_NAME)
