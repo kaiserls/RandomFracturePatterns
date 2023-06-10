@@ -3,16 +3,14 @@ import jinja2
 import subprocess
 import logging
 
-from fracsim.utils.path_helpers import get_pandas_app_path
 import fracsim.utils.random_field_generator as random_field_generator
 
 
 def create_cmd(parameters: dict):
     # Use jinja2 to create the cmd file from the template
-    app_path = get_pandas_app_path()
-    logging.info("Jinja2 template path: ", app_path)
+    app_path = parameters["app_path"]
     environment = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(app_path),
+        loader=jinja2.FileSystemLoader(app_path)
     )
 
     if parameters["homogeneous"]:
@@ -33,7 +31,7 @@ def create_cmd(parameters: dict):
 
 
 def save_cmd(parameters, cmd):
-    app_path = get_pandas_app_path()
+    app_path = parameters["app_path"]
     cmd_name = f"cmd_{parameters['run']}"
     path_to_cmd = app_path / "cmds" / cmd_name
     with open(path_to_cmd, "w") as f:
@@ -42,7 +40,7 @@ def save_cmd(parameters, cmd):
 
 
 def random_field(parameters):
-    app_path = get_pandas_app_path()
+    app_path = parameters["app_path"]
     coords = np.loadtxt(parameters["grid_file"], delimiter=" ", ndmin=2)
     random_field_generator.generate_field_data(
         min_X=parameters["x_min"],
