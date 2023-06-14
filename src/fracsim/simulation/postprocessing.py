@@ -27,8 +27,8 @@ def postprocess(simulation_results: list[dict], **kwargs):
     postprocessing_results = []
     for simulation_result in simulation_results:
         logging.info(f"Postprocessing run {simulation_result['run']}")
-        postprocessing_result.update(STRUCTURED_MESH)
-        postprocessing_result.update(kwargs)
+        simulation_result.update(STRUCTURED_MESH)
+        simulation_result.update(kwargs)
         postprocessing_result = postprocess_run(simulation_result, **kwargs)
         postprocessing_results.append(postprocessing_result)
     return postprocessing_results
