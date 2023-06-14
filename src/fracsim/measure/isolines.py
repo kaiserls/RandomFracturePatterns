@@ -4,13 +4,18 @@ import pyvista as pv
 from fracsim.utils.structured_mesh import scale_pixels_to_coordinates
 from fracsim.utils.image_type import is_01_image_with_threshold
 
+
 def isoline(image_01, iso_value):
-    assert is_01_image_with_threshold(image_01, iso_value), "image_01 must be a 01 image and threshold must be between 0 and 1"
+    assert is_01_image_with_threshold(
+        image_01, iso_value
+    ), "image_01 must be a 01 image and threshold must be between 0 and 1"
     contours = skimage.measure.find_contours(image_01, iso_value)
     return contours
 
+
 def scale_isolines_to_coordinates(mesh, isolines):
     return [scale_pixels_to_coordinates(mesh, c) for c in isolines]
+
 
 # def isolines_from_vtk(mesh_file, iso_value):
 #     """Return the isolines of the OP data from the vtk file belonging to app"""

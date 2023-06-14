@@ -6,6 +6,7 @@ import meshio
 This tool provides a function ```clean_mesh``` and executable code to remove the gauss nodes which are not contained in the mesh and can not be read by most programs. The executable code takes my first example file and saves it as clean ```.vtk``` and ```.dat``` file. 
 """
 
+
 def clean_tec_file(file_in: str, file_out: str):
     """Delete only the first empty line appearing. This is needed so that the pandas tecplot file can be read by meshio."""
     with open(file_in, "r") as f:
@@ -14,6 +15,7 @@ def clean_tec_file(file_in: str, file_out: str):
         index_of_empty_line = lines.index("\n")
         lines.pop(index_of_empty_line)
         f.writelines(lines)
+
 
 def clean_mesh(mesh: meshio.Mesh) -> meshio.Mesh:
     """Remove hanging gauss nodes from meshio mesh object and return a new meshio mesh object"""

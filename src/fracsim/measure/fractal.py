@@ -3,8 +3,9 @@ import matplotlib.pyplot as plt
 
 from fracsim.utils.image_type import is_01_image_with_threshold
 
+
 # Source: https://gist.github.com/viveksck/1110dfca01e4ec2c608515f0d5a5b1d1
-def fractal_dimension(Z:np.ndarray, threshold: float, plot=False) -> float:
+def fractal_dimension(Z: np.ndarray, threshold: float, plot=False) -> float:
     """Estimate the fractal dimension of a 2d image using the box-counting method and a polynomial fit to the log-log plot of the box-count vs box-size.
 
     Args:
@@ -14,7 +15,7 @@ def fractal_dimension(Z:np.ndarray, threshold: float, plot=False) -> float:
 
     Returns:
         float: Fractal dimension of the image.
-    """    
+    """
 
     assert is_01_image_with_threshold(Z, threshold)
 
@@ -30,7 +31,7 @@ def fractal_dimension(Z:np.ndarray, threshold: float, plot=False) -> float:
         return len(np.where((S > 0) & (S < k * k))[0])
 
     # Transform Z into a binary array
-    Z = (Z > threshold)
+    Z = Z > threshold
     if plot:
         plt.imshow(Z, interpolation="none", cmap="gray")
         plt.colorbar()

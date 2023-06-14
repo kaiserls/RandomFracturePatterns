@@ -18,11 +18,14 @@ def get_pandas_app_path():
                 )
         repo_path = Path(*cwd_path.parts[0 : i + 1])
         return repo_path
+
     try:
         with open("repo_path", "r") as f:
             repo_path = Path(f.readline().strip())
     except FileNotFoundError:
-        logging.error("Could not find file repo_path. Please create it. Trying to guess the path.")
+        logging.error(
+            "Could not find file repo_path. Please create it. Trying to guess the path."
+        )
         repo_path = get_repository_path(REPOSITORY_NAME)
     app_path = repo_path / REL_PATH_TO_APPS / APP_TEMPLATE
     return app_path

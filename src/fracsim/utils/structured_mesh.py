@@ -1,6 +1,7 @@
 import numpy as np
 import pyvista as pv
 
+
 def to_structured_pv(
     input_vtk,
     output_vtk,
@@ -43,11 +44,14 @@ def to_structured_pv(
             stgrid, color="white", opacity=0.9, scalars=field_names[0], show_edges=True
         )
         plotter.show()
-    
+
     return stgrid
 
+
 # TODO: pixel indices and pixel coordinates are not the same thing!!!!
-def scale_pixels_to_coordinates(mesh: pv.StructuredGrid, pixel_indices: np.ndarray) -> np.ndarray:
+def scale_pixels_to_coordinates(
+    mesh: pv.StructuredGrid, pixel_indices: np.ndarray
+) -> np.ndarray:
     """Scale some pixel indices from an image to the coordinates of the mesh representing the domain of the image.
 
     Args:
@@ -92,9 +96,11 @@ def scale_coordinates_to_pixels(
 
     return np.array([i, j]).T.astype(int)
 
+
 def discretization_size(x_min, x_max, n_points) -> float:
     """Calculate the discretization size of the domain."""
-    return (x_max - x_min) / (n_points - 1) # The mesh has n_points - 1 segments
+    return (x_max - x_min) / (n_points - 1)  # The mesh has n_points - 1 segments
+
 
 def cell_lengths_from_mesh(mesh: pv.StructuredGrid) -> tuple[float, float]:
     """Calculate the length of a single pixel in the mesh domain."""
@@ -103,10 +109,12 @@ def cell_lengths_from_mesh(mesh: pv.StructuredGrid) -> tuple[float, float]:
     dy = discretization_size(min_y, max_y, mesh.dimensions[1])
     return dx, dy
 
+
 def cell_area_from_mesh(mesh: pv.StructuredGrid) -> float:
     """Calculate the area of a single pixel in the mesh domain."""
     dx, dy = cell_lengths_from_mesh(mesh)
     return dx * dy
+
 
 def reshape_data(mesh: pv.StructuredGrid, data: np.ndarray) -> np.ndarray:
     """reshape the data to the shape of the mesh"""
@@ -120,9 +128,11 @@ def reshape_points(mesh: pv.StructuredGrid, points: np.ndarray) -> np.ndarray:
     points = points.reshape(np.array(mesh.dimensions[0:2][::-1], 3))
     return points
 
+
 def field_as_2d_array_from_mesh(mesh: pv.StructuredGrid, field_name: str) -> np.ndarray:
     """Get the data from the mesh as a 2D array"""
     return reshape_data(mesh, mesh[field_name])
+
 
 def mesh_and_2d_data_from_vtk(mesh_file, field_name: str) -> np.ndarray:
     mesh = pv.read(mesh_file)

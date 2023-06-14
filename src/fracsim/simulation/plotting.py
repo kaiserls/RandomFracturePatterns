@@ -14,7 +14,18 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
     other_runs = other_runs[other_runs["isoline_length"] > 999]
 
     if plots is None:
-        plots = ["volume", "count", "fractal_dimension", "isoline_length", "skeleton_length", "total_curvature", "skeleton_y_max", "sign_changes", "max_curvature", "max_curvature_smoothed"]
+        plots = [
+            "volume",
+            "count",
+            "fractal_dimension",
+            "isoline_length",
+            "skeleton_length",
+            "total_curvature",
+            "skeleton_y_max",
+            "sign_changes",
+            "max_curvature",
+            "max_curvature_smoothed",
+        ]
 
     n_row_plots = len(plots)
 
@@ -32,15 +43,17 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
         max_val, min_val = np.max(other_runs[plot]), np.min(other_runs[plot])
         if len(reference_run_df) > 0:
             hom_val = reference_run_df[plot].values[0]
-            max_val = max(max_val, hom_val)*1.1
-            min_val = min(min_val, hom_val)*0.9
+            max_val = max(max_val, hom_val) * 1.1
+            min_val = min(min_val, hom_val) * 0.9
         for j, std_lambda in enumerate(std_lambdas):
             if n_col_plots == 1:
                 ax = axs[i, 0]
             else:
                 ax = axs[i, j]
 
-            lengthscales_lambda_all = other_runs[other_runs["std_lambda"] == std_lambda]["lengthscale_lambda"]
+            lengthscales_lambda_all = other_runs[
+                other_runs["std_lambda"] == std_lambda
+            ]["lengthscale_lambda"]
             lengthscales_lambda = lengthscales_lambda_all.unique()
 
             ax.scatter(
@@ -71,7 +84,10 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
             ax.plot(
                 lengthscales_lambda,
                 [
-                    other_runs.query(f"std_lambda == {std_lambda} & lengthscale_lambda == {lengthscale_lambda}")[plot].mean() for lengthscale_lambda in lengthscales_lambda
+                    other_runs.query(
+                        f"std_lambda == {std_lambda} & lengthscale_lambda == {lengthscale_lambda}"
+                    )[plot].mean()
+                    for lengthscale_lambda in lengthscales_lambda
                     # other_runs[other_runs["std_lambda"] == std_lambda & other_runs["lengthscale_lambda"] == lengtscale_lambda][plot].mean(axis=0) for lengtscale_lambda in lengthscales_lambda
                 ],
                 label=f"mean std_lambda={std_lambda:.2E}",

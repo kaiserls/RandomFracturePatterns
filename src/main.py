@@ -32,8 +32,14 @@ import fracsim.simulation.plotting as plotting
 
 def main():
     """The main function managing the simulation."""
-    logging.basicConfig(filename=f"log_{datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}.log", encoding='utf-8', level=logging.INFO)
-    logging.info(f"Started logging at {datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}")
+    logging.basicConfig(
+        filename=f"log_{datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}.log",
+        encoding="utf-8",
+        level=logging.INFO,
+    )
+    logging.info(
+        f"Started logging at {datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}"
+    )
 
     local = False
     if local:
@@ -52,10 +58,10 @@ def main():
             hosts=hosts,
             connect_options={"known_hosts": None, "username": "lars_k"},
             # scheduler_options={"port": 0, "dashboard_address": ":8797"},
-            remote_python="/usr/bin/python3.10"
+            remote_python="/usr/bin/python3.10",
         )
         client = Client(cluster)
-        #Client("129.69.167.191:8786")
+        # Client("129.69.167.191:8786")
 
     print("The client is: ", client)
     print("The scheduler is: ", client.scheduler_info())
@@ -66,7 +72,9 @@ def main():
     scenarios = parameters.define_scenarios(default_parameters)
     pd.DataFrame(scenarios).to_csv("results/scenarios.csv")
 
-    scenario_simulations = [delayed(simulation.simulate)(scenario) for scenario in scenarios]
+    scenario_simulations = [
+        delayed(simulation.simulate)(scenario) for scenario in scenarios
+    ]
     simulation_results = compute(
         *scenario_simulations
     )  # Compute all simulations in parallel

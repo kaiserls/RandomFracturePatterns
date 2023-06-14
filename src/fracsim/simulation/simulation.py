@@ -9,9 +9,7 @@ import fracsim.utils.random_field_generator as random_field_generator
 def create_cmd(parameters: dict):
     # Use jinja2 to create the cmd file from the template
     app_path = parameters["app_path"]
-    environment = jinja2.Environment(
-        loader=jinja2.FileSystemLoader(app_path)
-    )
+    environment = jinja2.Environment(loader=jinja2.FileSystemLoader(app_path))
 
     if parameters["homogeneous"]:
         template_name = "cmd_homogen"
@@ -25,8 +23,12 @@ def create_cmd(parameters: dict):
             run=parameters["run"],
         )
     except:
-        logging.error(f"Could not load template {template_name}. The template path is {app_path}.")
-        raise FileNotFoundError(f"Could not load template {template_name}. The template path is {app_path}.")
+        logging.error(
+            f"Could not load template {template_name}. The template path is {app_path}."
+        )
+        raise FileNotFoundError(
+            f"Could not load template {template_name}. The template path is {app_path}."
+        )
     return cmd
 
 
