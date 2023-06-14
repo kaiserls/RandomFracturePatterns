@@ -10,7 +10,7 @@ def to_structured_pv(
     structured_mesh_max_y,
     structured_mesh_n_x,
     structured_mesh_n_y,
-    field_name: str = "OP",
+    field_names: list[str] = ["OP", "LAMBDA_S"],
     plot=False,
 ) -> pv.StructuredGrid:
     """Use pyvista to sample the unstructured grid data with the given field name to a structured grid and save it to the given output path as vtk"""
@@ -33,13 +33,14 @@ def to_structured_pv(
     stgrid = pv.StructuredGrid(X, Y, Z)
 
     result = stgrid.sample(ugrid)
-    stgrid.point_data[field_name] = result[field_name]
+    for field_name in field_names:
+        stgrid.point_data[field_name] = result[field_name]
     stgrid.save(output_vtk)
 
     if plot:
         plotter = pv.Plotter()
         plotter.add_mesh(
-            stgrid, color="white", opacity=0.9, scalars="OP", show_edges=True
+            stgrid, color="white", opacity=0.9, scalars=field_names[0], show_edges=True
         )
         plotter.show()
     
@@ -66,6 +67,30 @@ def scale_pixels_to_coordinates(mesh: pv.StructuredGrid, pixel_indices: np.ndarr
     y = j * dy + min_y
 
     return np.array([x, y]).T
+
+
+def scale_coordinates_to_pixels(
+    mesh: pv.StructuredGrid, coordinates: np.ndarray
+) -> np.ndarray:
+    """Scale some coordinates from the mesh to the pixels of the image.
+
+    Args:
+        mesh (pv.StructuredGrid): A structured mesh representing the domain of the image.
+        coordinates (np.ndarray): Some coordinates as float pairs (x, y).
+
+    Returns:
+        np.ndarray: The pixel indices of the coordinates as int pairs (i, j).
+    """
+    min_x, max_x, min_y, max_y, min_z, max_z = mesh.bounds
+    dx, dy = cell_lengths_from_mesh(mesh)
+
+    # scale the coordinates to the pixel indices
+    x = coordinates[:, 0]
+    y = coordinates[:, 1]
+    i = (x - min_x) / dx
+    j = (y - min_y) / dy
+
+    return np.array([i, j]).T.astype(int)
 
 def discretization_size(x_min, x_max, n_points) -> float:
     """Calculate the discretization size of the domain."""
