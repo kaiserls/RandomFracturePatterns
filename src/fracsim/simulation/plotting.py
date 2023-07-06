@@ -2,8 +2,45 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+plt.rcParams.update(
+    {
+        "text.usetex": True,
+        # "font.family": "Helvetica",
+        "figure.figsize": "4.9, 3.5",
+        "font.size": 11.0,
+        "font.family": "serif",
+        "font.serif": "Palatino",
+        "axes.titlesize": "medium",
+        "figure.titlesize": "medium",
+        "text.latex.preamble": "\\usepackage{amsmath}\\usepackage{amssymb}\\usepackage{siunitx}",
+    }
+)
 
-def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
+y_axis_labels = {
+    "volume": "volume [\\unit{\\milli\\meter\\squared}]",
+    "count": "count [-]",
+    "fractal_dimension": "fractal dimension [-]",
+    "isoline_length": "isoline length [\\unit{\\milli\meter}]",
+    "skeleton_length": "skeleton length [\\unit{\\milli\meter}]",
+    "total_curvature": "total curvature [\\unit{\\per\\milli\meter}]",
+    "skeleton_y_max": "skeleton y max [\\unit{\\milli\meter}]",
+    "isoline_y_max": "isoline y max [\\unit{\\milli\meter}]",
+    "sign_changes": "sign changes [-]",
+    "max_curvature": "max curvature [\\unit{\\per\\milli\meter}]",
+    "mean_curvature_smoothed": "mean curvature smoothed [\\unit{\\per\\milli\meter}]",
+    "max_curvature_smoothed": "max curvature smoothed [\\unit{\\per\\milli\meter}]",
+    "sign_changes_smoothed": "sign changes smoothed [-]",
+    "sign_changes_smoothed_gaussian": "sign changes smoothed gaussian [-]",
+}
+
+
+def plot(
+    df: pd.DataFrame,
+    create_subplots: bool = False,
+    plots: list = None,
+    show_mean=True,
+    show_run_idx=False,
+):
     """Visualize the results"""
     # reference_run
     reference_run_df = df[df["homogeneous"] == True]
@@ -22,6 +59,7 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
             "skeleton_length",
             "total_curvature",
             "skeleton_y_max",
+            "isoline_y_max",
             "sign_changes",
             "max_curvature",
             "max_curvature_smoothed",
@@ -43,8 +81,8 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
         max_val, min_val = np.max(other_runs[plot]), np.min(other_runs[plot])
         if len(reference_run_df) > 0:
             hom_val = reference_run_df[plot].values[0]
-            max_val = max(max_val, hom_val) * 1.1
-            min_val = min(min_val, hom_val) * 0.9
+            max_val = max(max_val, hom_val) * 1.05
+            min_val = min(min_val, hom_val) * 0.95
         for j, std_lambda in enumerate(std_lambdas):
             if n_col_plots == 1:
                 ax = axs[i, 0]
@@ -59,9 +97,18 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
             ax.scatter(
                 lengthscales_lambda_all,
                 other_runs[other_runs["std_lambda"] == std_lambda][plot],
-                label=f"std_lambda={std_lambda:.2E}",
+                label="samples",  # label=f"std_lambda={std_lambda:.2E}",
                 color=std_lambda_colors[j],
             )
+            ax.set_title(f"$\sigma(\lambda^S)$ = {std_lambda:.2E}")
+            if show_run_idx:
+                for _, data_point in other_runs[
+                    other_runs["std_lambda"] == std_lambda
+                ].iterrows():
+                    ax.annotate(
+                        data_point["run"],
+                        (data_point["lengthscale_lambda"], data_point[plot]),
+                    )
             if len(reference_run_df) > 0:
                 # Draw a horizontal line at the homogeneous case
                 ax.axhline(
@@ -70,28 +117,31 @@ def plot(df: pd.DataFrame, create_subplots: bool = False, plots: list = None):
 
             # labels
             # if i == n_plots - 1:
-            ax.set_xlabel("lengthscale_lambda")
-            ax.set_ylabel(plot)
+            ax.set_xlabel("length scale of $\lambda^S$ [\\unit{\\milli\meter}]")
+            # ax.set_ylabel(plot.replace("_", " "))
+            ax.set_ylabel(y_axis_labels[plot])
             # legend
             ax.legend(loc="upper right")
 
             ax.set_ylim([min_val, max_val])
-            ax.set_xlim([1, 1000])
+            ax.set_xlim([0.8, 1250])
             # set log scale for x
             ax.set_xscale("log")
 
             # Also plot the mean of the samples
-            ax.plot(
-                lengthscales_lambda,
-                [
-                    other_runs.query(
-                        f"std_lambda == {std_lambda} & lengthscale_lambda == {lengthscale_lambda}"
-                    )[plot].mean()
-                    for lengthscale_lambda in lengthscales_lambda
-                    # other_runs[other_runs["std_lambda"] == std_lambda & other_runs["lengthscale_lambda"] == lengtscale_lambda][plot].mean(axis=0) for lengtscale_lambda in lengthscales_lambda
-                ],
-                label=f"mean std_lambda={std_lambda:.2E}",
-                color=std_lambda_colors[j],
-            )
+            if show_mean:
+                ax.plot(
+                    lengthscales_lambda,
+                    [
+                        other_runs.query(
+                            f"std_lambda == {std_lambda} & lengthscale_lambda == {lengthscale_lambda}"
+                        )[plot].mean()
+                        for lengthscale_lambda in lengthscales_lambda
+                        # other_runs[other_runs["std_lambda"] == std_lambda & other_runs["lengthscale_lambda"] == lengtscale_lambda][plot].mean(axis=0) for lengtscale_lambda in lengthscales_lambda
+                    ],
+                    label="samples",  # f"mean std_lambda={std_lambda:.2E}",
+                    color=std_lambda_colors[j],
+                )
+                ax.set_title(f"$\sigma(\lambda^S) = {std_lambda:.2E}$")
 
     plt.show()
