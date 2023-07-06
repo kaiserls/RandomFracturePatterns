@@ -18,4 +18,6 @@ dependencies = [
     "Pillow",
     "jinja2",
     "asyncssh",
+    "porespy",
+    "ipywidgets",
 ]

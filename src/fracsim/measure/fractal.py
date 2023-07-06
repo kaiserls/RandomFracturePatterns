@@ -1,11 +1,35 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import scipy
+import porespy as ps
 
 from fracsim.utils.image_type import is_01_image_with_threshold
 
 
-# Source: https://gist.github.com/viveksck/1110dfca01e4ec2c608515f0d5a5b1d1
 def fractal_dimension(Z: np.ndarray, threshold: float, plot=False) -> float:
+    # Z = Z > threshold
+    sizes, counts, slopes = ps.metrics.boxcount(Z)
+    slope, intercept, r_value, p_value, std_err = scipy.stats.linregress(
+        np.log(sizes), np.log(counts)
+    )
+    coeffs = np.polyfit(np.log(sizes), np.log(counts), 1)
+    ps_dim = -coeffs[0]
+    if plot:
+        plt.loglog(sizes, counts, "bo")
+        plt.loglog(sizes, np.exp(coeffs[1]) * sizes ** coeffs[0], "r-")
+        plt.xlabel("Box Size (pixels)")
+        plt.ylabel("Number of Boxes")
+        plt.title(f"Fractal dimension = {ps_dim:.2f}")
+        plt.show()
+
+        plt.imshow(Z, interpolation="none", cmap="gray")
+        plt.colorbar()
+        plt.show()
+    return ps_dim
+
+
+# Source: https://gist.github.com/viveksck/1110dfca01e4ec2c608515f0d5a5b1d1
+def fractal_dimension_old(Z: np.ndarray, threshold: float, plot=False) -> float:
     """Estimate the fractal dimension of a 2d image using the box-counting method and a polynomial fit to the log-log plot of the box-count vs box-size.
 
     Args:
