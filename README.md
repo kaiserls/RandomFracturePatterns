@@ -4,7 +4,7 @@ Repository containing the tools to perform the calculations for the thesis **Qua
 
 ## Fracture simulation
 
-The pde models describing the crack [propagation in porous media](https://www.researchgate.net/publication/371199835_Hydraulically_induced_fracturing_in_heterogeneous_porous_media_using_a_TPM-phase-field_model_and_geostatistics) is solved with an inhouse code [PANDAS](https://www.mib.uni-stuttgart.de/cont/). The data are output as tecplot data, containing the data for the variables at the triangle nodes, but also at the gauss nodes of the used Finite-Element shape function.
+The pde models describing the [crack propagation in porous media](https://www.researchgate.net/publication/371199835_Hydraulically_induced_fracturing_in_heterogeneous_porous_media_using_a_TPM-phase-field_model_and_geostatistics) is solved with an inhouse code [PANDAS](https://www.mib.uni-stuttgart.de/cont/). The data are output as tecplot data, containing the data for the variables at the triangle nodes, but also at the gauss nodes of the used Finite-Element shape function.
 
 ## Installation
 
