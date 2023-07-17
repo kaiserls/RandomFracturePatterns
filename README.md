@@ -30,6 +30,10 @@ If this does fail, due to failing imports, try:
 python3 -m src.main
 ```
 
+## Analysis of the simulation results
+
+The simulation results will already be post-processed, analyzed and visualized by the main script. More control and the settings used in the thesis can be obtained by using the jupyter notebook `evaluate.ipynb`.
+
 ## Computing on a server
 
 1. Connect to local network over vpn.
