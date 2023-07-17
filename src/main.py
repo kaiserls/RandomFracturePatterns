@@ -41,7 +41,7 @@ def main():
         f"Started logging at {datetime.now().strftime('%Y-%m-%d_%I-%M-%S_%p')}"
     )
 
-    local = False
+    local = True
     if local:
         cluster = LocalCluster(n_workers=14, threads_per_worker=1)
         client = Client(cluster)
