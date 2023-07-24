@@ -2,17 +2,19 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 plt.rcParams.update(
     {
         "text.usetex": True,
-        # "font.family": "Helvetica",
-        "figure.figsize": "4.9, 3.5",
+        "font.family": "lmodern",
         "font.size": 11.0,
-        "font.family": "serif",
-        "font.serif": "Palatino",
+        # "font.family": "serif",
+        # "font.serif": "Palatino",
         "axes.titlesize": "medium",
         "figure.titlesize": "medium",
         "text.latex.preamble": "\\usepackage{amsmath}\\usepackage{amssymb}\\usepackage{siunitx}",
+        "savefig.dpi": 300,
+        "figure.dpi": 300,
     }
 )
 
@@ -143,5 +145,5 @@ def plot(
                     color=std_lambda_colors[j],
                 )
                 ax.set_title(f"$\sigma(\lambda^S) = {std_lambda:.2E}$")
-
+    plt.savefig("results/plot.pdf", bbox_inches="tight")
     plt.show()
